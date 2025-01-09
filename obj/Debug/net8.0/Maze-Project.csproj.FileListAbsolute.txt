@@ -1,0 +1,14 @@
+C:\Users\jpang18\OneDrive\Documents\Maze-Project\bin\Debug\net8.0\Maze-Project.exe
+C:\Users\jpang18\OneDrive\Documents\Maze-Project\bin\Debug\net8.0\Maze-Project.deps.json
+C:\Users\jpang18\OneDrive\Documents\Maze-Project\bin\Debug\net8.0\Maze-Project.runtimeconfig.json
+C:\Users\jpang18\OneDrive\Documents\Maze-Project\bin\Debug\net8.0\Maze-Project.dll
+C:\Users\jpang18\OneDrive\Documents\Maze-Project\bin\Debug\net8.0\Maze-Project.pdb
+C:\Users\jpang18\OneDrive\Documents\Maze-Project\obj\Debug\net8.0\Maze-Project.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\jpang18\OneDrive\Documents\Maze-Project\obj\Debug\net8.0\Maze-Project.AssemblyInfoInputs.cache
+C:\Users\jpang18\OneDrive\Documents\Maze-Project\obj\Debug\net8.0\Maze-Project.AssemblyInfo.cs
+C:\Users\jpang18\OneDrive\Documents\Maze-Project\obj\Debug\net8.0\Maze-Project.csproj.CoreCompileInputs.cache
+C:\Users\jpang18\OneDrive\Documents\Maze-Project\obj\Debug\net8.0\Maze-Project.dll
+C:\Users\jpang18\OneDrive\Documents\Maze-Project\obj\Debug\net8.0\refint\Maze-Project.dll
+C:\Users\jpang18\OneDrive\Documents\Maze-Project\obj\Debug\net8.0\Maze-Project.pdb
+C:\Users\jpang18\OneDrive\Documents\Maze-Project\obj\Debug\net8.0\Maze-Project.genruntimeconfig.cache
+C:\Users\jpang18\OneDrive\Documents\Maze-Project\obj\Debug\net8.0\ref\Maze-Project.dll
