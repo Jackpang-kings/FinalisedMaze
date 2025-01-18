@@ -32,11 +32,17 @@ class Program {
                 for (int i = 0; i < strcommand.Length;i++){
                     intcommand[i] = int.Parse(strcommand[i]);
                 }
-                valid = true;
+                if (intcommand[0]<51&&intcommand[0]>0){
+                    valid = true;
+                }else{
+                    Console.WriteLine("Invalid choice: Either width is too large or size is negative");
+                    valid = false;
+                }
             }catch{
                 Console.WriteLine("Invalid choice");
             }
         }while(valid==false);
+        
         MazeGrid gameboard = new MazeGrid(intcommand[0],intcommand[1]);
         // Initialising cells in the maze
         gameboard.InitialiseMaze();
@@ -44,43 +50,51 @@ class Program {
         Console.WriteLine(gameboard.MazeNoNumPrint());
         Console.Write("Enter to continue...");
         Console.ReadKey();
-
-        Console.WriteLine("D)Depth-first trarversal P)Prim's Algorithm Q)Quit");
-        string ch = Console.ReadLine().ToUpper();
-        switch (ch){
-            case "D":{
+        string ch;
+        do{
+            Console.WriteLine("D)Depth-first trarversal P)Prim's Algorithm Q)Quit");
+            ch = Console.ReadLine().ToUpper();
+            if (ch=="D"|ch==""){
                 // Generating maze with depth-first search
+                gameboard.InitialiseMaze();
                 gameboard.CreateDFSMaze();
                 Console.WriteLine();
                 Console.WriteLine("Generated maze using Depth-first traversal");
                 Console.WriteLine(gameboard.MazeNoNumPrint());
-                Console.Write("Enter to continue...");
-                Console.ReadKey();
-                break;
-            }
-            case "P":{
+                Console.WriteLine("R) Regenerate, Enter) Leave Creating Random Maze");
+            }else if (ch=="P"){
                 // Generating maze with Prim's Algorithm
+                gameboard.InitialiseMaze();
                 gameboard.CreatePrimsMaze();
                 Console.WriteLine();
                 Console.WriteLine("Generated maze using Prim's Algorithm");
                 Console.WriteLine(gameboard.MazeNoNumPrint());
-                Console.Write("Enter to continue...");
-                Console.ReadKey();
-                break;
+                Console.WriteLine("R) Regenerate, Enter) Leave Creating Random Maze");
             }
+            ch = Console.ReadLine().ToUpper();
+            Console.Clear();
+        }while (ch=="R");
+
+        // Move GameObject in maze
+        string message = "not moved";
+        GameObject player = new GameObject(0,0,"Player1","8",true,true);
+        Cell startCell = gameboard.GetMazeCell(0,0);
+        Cell nextCell;
+        startCell.SetGameObject(ref player);
+        Console.WriteLine(gameboard.MazePrintWithGmObj());
+        
+        while (message!="PAUSE"&&message!="CLEAR"){
+            Console.WriteLine("Arrow keys to move, E) Check if you are at goal");
+            (nextCell,message) = Input(gameboard,startCell);
+            Console.Clear();
+            startCell = nextCell;
+            Console.WriteLine(gameboard.MazePrintWithGmObj());
+            Console.WriteLine(message);
         }
-
-        Console.WriteLine("Dijkstra's Algorithm Path:");
-        GameDijkstra(gameboard);
-        Console.Write("Enter to continue...");
         Console.ReadKey();
-
-        Console.WriteLine("Breadth First Algorithm Path:");
-        GameBreadthFirst(gameboard);
-        Console.Write("Enter to continue...");
-        Console.ReadKey();
-
     }
+    
+
     static void testScript(){
         //testCell();
         //testMazeGrid();
@@ -291,9 +305,9 @@ class Program {
     }
     static void testGameObject(){
         // Create some GameObject instances
-        GameObject wall = new GameObject(0, 0, "Wall", false, false);
-        GameObject box = new GameObject(1, 2, "Box", true, true);
-        GameObject key = new GameObject(2, 3, "Key", true, false);
+        GameObject wall = new GameObject(0, 0, "Wall","W", false, false);
+        GameObject box = new GameObject(1, 2, "Box","B", true, true);
+        GameObject key = new GameObject(2, 3, "Key","K", true, false);
 
         // Test the ToString method
         Console.WriteLine(wall.ToString());
@@ -315,8 +329,8 @@ class Program {
     }
     static void testGameObjectAndCell(){
         // Create GameObject instances
-        GameObject treasure = new GameObject(2, 3, "Treasure", false, false);
-        GameObject monster = new GameObject(1, 1, "Monster", true, false);
+        GameObject treasure = new GameObject(2, 3, "Treasure","T", false, false);
+        GameObject monster = new GameObject(1, 1, "Monster","M", true, false);
 
         // Create Cell instances
         Cell cell1 = new Cell(0, 0);
@@ -343,16 +357,15 @@ class Program {
             Console.WriteLine(connectedCell.ToString());
         }
     }
-    static void GameDijkstra(MazeGrid maze){           
+    static void GameDijkstra(MazeGrid maze,Cell currentCell){           
         // Step 1: Create a PathFinder object
         Graph graph = new Graph(new List<Node>());
         PathFinder pathFinder = new PathFinder(maze,graph);
         pathFinder.LinkNodeRelationships();
 
         // Step 2: Perform Dijkstra's Algorithm between two nodes
-        Cell startCell = maze.GetMazeCell(0,0);
-        Cell endCell = maze.GetMazeCell(0,(maze.Height()-1));
-        Node startNode = pathFinder.Cell2Node(startCell);  // Top-left corner
+        Cell endCell = maze.GetMazeCell((maze.Width()-1)/2,(maze.Height()-1));
+        Node startNode = pathFinder.Cell2Node(currentCell   );  // Top-left corner
         Node endNode = pathFinder.Cell2Node(endCell);    // Bottom-right corner
         var solution = pathFinder.graph.DijkstraAlgorithm(startNode,endNode);
 
@@ -380,7 +393,7 @@ class Program {
 
         // Step 2: Perform Dijkstra's Algorithm between two nodes
         Cell startCell = maze.GetMazeCell(0,0);
-        Cell endCell = maze.GetMazeCell(0,(maze.Height()-1));
+        Cell endCell = maze.GetMazeCell((maze.Width()-1)/2,(maze.Height()-1));
         Node startNode = pathFinder.Cell2Node(startCell);  // Top-left corner
         Node endNode = pathFinder.Cell2Node(endCell);    // Bottom-right corner
         var solution = pathFinder.graph.BreadthFirstTraversal(startNode,endNode);
@@ -401,5 +414,55 @@ class Program {
         Console.WriteLine($"Total nodes: {graph.GetNodes().Count}");
         Console.WriteLine($"Number of nodes traversed: {counter}");
     }
-}
+    static (Cell,string) Input(MazeGrid gameBoard,Cell currentCell){
+        System.ConsoleKeyInfo input = Console.ReadKey();
+        Cell nextCell = currentCell;
+        Console.Clear();
+        string moved = "Not moved";
+        if (input.Key == ConsoleKey.UpArrow){
+            if (gameBoard.MoveValid(currentCell,"UP")){
+                nextCell = gameBoard.Move(currentCell,"UP");
+                moved = "Moved UP";
+            }
+        }else if (input.Key == ConsoleKey.DownArrow){
+            if (gameBoard.MoveValid(currentCell,"DOWN")){
+                nextCell = gameBoard.Move(currentCell,"DOWN");
+                moved = "Moved DOWN";
+            }
+        }else if (input.Key == ConsoleKey.LeftArrow){
+            if (gameBoard.MoveValid(currentCell,"LEFT")){
+                nextCell = gameBoard.Move(currentCell,"LEFT");
+                moved = "Moved LEFT";
+            }
+        }else if (input.Key == ConsoleKey.RightArrow){
+            if (gameBoard.MoveValid(currentCell,"RIGHT")){
+                nextCell = gameBoard.Move(currentCell,"RIGHT");
+                moved = "Moved RIGHT";
+            }
+        }else if (input.Key == ConsoleKey.Escape){
+            moved = "PAUSE";
+        }else if (input.Key == ConsoleKey.E){
+            moved = GameClear(currentCell,gameBoard.Width(),gameBoard.Height());
+        }
+        return (nextCell,moved);
+        /*
+        Console.WriteLine("Dijkstra's Algorithm Path:");
+        GameDijkstra(gameboard);
+        Console.Write("Enter to continue...");
+        Console.ReadKey();
+
+        Console.WriteLine("Breadth First Algorithm Path:");
+        GameBreadthFirst(gameboard);
+        Console.Write("Enter to continue...");
+        Console.ReadKey();
+        */
+    }
+    static string GameClear(Cell c,int width,int height){
+        if (c.X()==width-1&&c.Y()==height-1){
+            return "CLEAR";
+        }else{
+            return "Not there yet";
+        }
+    }  
+    }
 }

@@ -12,3 +12,4 @@ C:\Users\jpang18\OneDrive\Documents\Maze-Project\obj\Debug\net8.0\refint\Maze-Pr
 C:\Users\jpang18\OneDrive\Documents\Maze-Project\obj\Debug\net8.0\Maze-Project.pdb
 C:\Users\jpang18\OneDrive\Documents\Maze-Project\obj\Debug\net8.0\Maze-Project.genruntimeconfig.cache
 C:\Users\jpang18\OneDrive\Documents\Maze-Project\obj\Debug\net8.0\ref\Maze-Project.dll
+C:\Users\jpang18\OneDrive\Documents\Maze-Project\obj\Debug\net8.0\Maze-Project.sourcelink.json

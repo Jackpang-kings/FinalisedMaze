@@ -15,7 +15,7 @@ namespace MazeGame{
             for(int i = 0;i<_maze.Width();i++){
                 for(int j = 0;j<_maze.Height();j++){
                     Cell c = _maze._mazeGrid[i,j];
-                    if (IsNode(c)){
+                    if (c.IsNode(_maze.Width(),_maze.Height())){
                         Node newNode = new Node(nodecounter, c.X(), c.Y(),new List<Edge>());
                         nodecounter++;
                         graph.AddNode(newNode);
@@ -27,29 +27,10 @@ namespace MazeGame{
         public void LinkNodeRelationships(){
             _maze.SetAllCellNotVisited();
             foreach (Cell c in _maze._mazeGrid){
-                if (IsNode(c)){
+                if (c.IsNode(_maze.Width(),_maze.Height())){
                     CheckNodesRelationship(c);
                 }
             }
-        }
-        public bool IsNode(Cell cell){
-            if(cell.X()==0&&cell.Y()==0){
-                return true;
-            }else if (cell.X()==_maze.Width()-1&&cell.Y()==_maze.Height()-1){
-                return true;
-            }
-            else if (cell.FrontWall&&cell.BackWall){
-                if (cell.RightWall^cell.LeftWall){
-                    return true;
-                }
-            }else if (cell.RightWall&&cell.LeftWall){
-                if (cell.FrontWall^cell.BackWall){
-                    return true;
-                }
-            }else if (!((cell.FrontWall&&cell.BackWall)|(cell.LeftWall&&cell.RightWall))){
-                return true;
-            }
-            return false;
         }
         public void CheckNodesRelationship(Cell c){
             Node prevNode;
@@ -60,7 +41,7 @@ namespace MazeGame{
             if (!c.LeftWall){
                 while(!found&&x>=1){
                     x--;
-                    if (IsNode(_maze._mazeGrid[x,c.Y()])&&_maze._mazeGrid[x,c.Y()]!=c){
+                    if (_maze._mazeGrid[x,c.Y()].IsNode(_maze.Width(),_maze.Height())&&_maze._mazeGrid[x,c.Y()]!=c){
                         prevNode = cellNodeMap[_maze._mazeGrid[x,c.Y()]];
                         SetGraphRelationship(newNode,prevNode);
                         found=true;
@@ -71,7 +52,7 @@ namespace MazeGame{
             if (!c.RightWall){
                 while(!found&&x<_maze.Width()-1){
                     x++;
-                    if (IsNode(_maze._mazeGrid[x,c.Y()])&&_maze._mazeGrid[x,c.Y()]!=c){
+                    if (_maze._mazeGrid[x,c.Y()].IsNode(_maze.Width(),_maze.Height())&&_maze._mazeGrid[x,c.Y()]!=c){
                         prevNode = cellNodeMap[_maze._mazeGrid[x,c.Y()]];
                         SetGraphRelationship(newNode,prevNode);
                         found=true;
@@ -82,7 +63,7 @@ namespace MazeGame{
             if (!c.FrontWall){
                 while(!found&&y>=1){
                     y--;
-                    if (IsNode(_maze._mazeGrid[c.X(),y])&&_maze._mazeGrid[c.X(),y]!=c){
+                    if (_maze._mazeGrid[c.X(),y].IsNode(_maze.Width(),_maze.Height())&&_maze._mazeGrid[c.X(),y]!=c){
                         prevNode = cellNodeMap[_maze._mazeGrid[c.X(),y]];
                         SetGraphRelationship(newNode,prevNode);
                         found=true;
@@ -93,7 +74,7 @@ namespace MazeGame{
             if (!c.BackWall){
                 while(!found&&y<_maze.Height()-1){
                     y++;
-                    if (IsNode(_maze._mazeGrid[c.X(),y])&&_maze._mazeGrid[c.X(),y]!=c){
+                    if (_maze._mazeGrid[c.X(),y].IsNode(_maze.Width(),_maze.Height())&&_maze._mazeGrid[c.X(),y]!=c){
                         prevNode = cellNodeMap[_maze._mazeGrid[c.X(),y]];
                         SetGraphRelationship(newNode,prevNode);
                         found=true;
@@ -133,7 +114,7 @@ namespace MazeGame{
             }else{
                 message += "  ";
             }
-            if (IsNode(cell)){
+            if (cell.IsNode(_maze.Width(),_maze.Height())){
                 if (solution.Contains(cellNodeMap[cell])){
                     message += "#";
                 }else{

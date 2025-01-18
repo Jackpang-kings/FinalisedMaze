@@ -6,7 +6,7 @@ namespace MazeGame{
         public Cell[,] _mazeGrid;
         int width, height;
     
-    public MazeGrid(int w,int h){
+    public MazeGrid(int w,int h) {
         width = w;
         height = h;
         _mazeGrid = new Cell[width,height];
@@ -136,16 +136,6 @@ namespace MazeGame{
         }
         return adjcells; 
     }
-    List<Cell> FYShuffleList(List<Cell> rndList){
-        Random rnd = new Random();
-        for(int i = rndList.Count-1;i>0;i--){
-            var k = rnd.Next(i+1);
-            Cell tempCell = rndList[k];
-            rndList[k] = rndList[i];
-            rndList[i] = tempCell;
-        }
-        return rndList;
-    }
     public Cell NeighbourCell(Cell currCell,bool visited){
         List<Cell> adjCell = RetrieveAdjacentCells(currCell.neighbourCells,visited);
         // Pick random cell from adjCell
@@ -181,7 +171,64 @@ namespace MazeGame{
                 currcell.AddConnectedCell(GetMazeCell(currcell.X()+1, currcell.Y()));
             }
         }
+    }
+    public bool MoveValid(Cell c,string direction){
+        int x = c.X();
+        int y = c.Y();
+        bool valid = false;
+        if (c.GetGameObject().IsMovable()){
+            if (direction=="UP"){
+                if (!c.FrontWall&&y-1>=0){
+                    valid = true;
+                }
+            }else if (direction=="DOWN"){
+                if (y+1<height&&!c.BackWall){
+                    valid = true;
+                }
+            }else if (direction=="LEFT"){
+                if (!c.LeftWall&&x-1>=0){
+                    valid = true;
+                }
+            }else if (direction=="RIGHT"){
+                if (!c.RightWall&&x+1<width){
+                    valid = true;
+                }
+            }
         }
+	    
+        return valid;
+    }
+    public Cell Move(Cell currentCell,string direction){
+        int x = currentCell.X();
+        int y = currentCell.Y();
+        GameObject object2Move = currentCell.GetGameObject();
+        Cell nextCell;
+        if (direction=="UP"){
+            nextCell = _mazeGrid[x,y-1];
+            object2Move.y = y-1;
+            Swap();
+        }else if (direction=="DOWN"){
+            nextCell = _mazeGrid[x,y+1];
+            object2Move.y = y+1;
+            Swap();
+        }else if (direction=="LEFT"){
+            nextCell = _mazeGrid[x-1,y];
+            object2Move.x = x-1;
+            Swap();
+        }else if (direction=="RIGHT"){
+            nextCell = _mazeGrid[x+1,y];
+            object2Move.x = x+1;
+            Swap();
+        }else{
+            return currentCell;
+        }
+        void Swap(){
+            GameObject holder = nextCell.GetGameObject();
+            nextCell.SetGameObject(ref object2Move);
+            currentCell.SetGameObject(ref holder);
+        }
+        return nextCell;
+    }
     public void CreateDFSMaze(){
         GetMazeCell(0,0).FrontWall = false;
         GetMazeCell(Width()-1,Height()-1).BackWall = false;
@@ -195,6 +242,64 @@ namespace MazeGame{
         PrimsMaze(GetMazeCell(PickRandomNum(width)/2,PickRandomNum(height)/2));
         SetAllCellNotVisited();
         SetConnectedCells();
+    }
+    public string MazePrint() {
+        string mazeprintmessage ="   ";
+        for (int i = 0;i<Width();i++){
+            mazeprintmessage += $"{Convert.ToString(i),3}  ";
+        }
+        mazeprintmessage += "\n".PadRight(4);
+        mazeprintmessage += PrintCellFrontWall(GetMazeRows(0));
+        for (int j = 0;j<Height();j++){
+            Cell[] rowOfCells = GetMazeRows(j);
+            mazeprintmessage += $"{j,3}";
+            mazeprintmessage += PrintCellLeftRightWall(rowOfCells);
+            mazeprintmessage += $"".PadLeft(3);
+            mazeprintmessage += PrintCellBackWall(rowOfCells);
+        }
+        return mazeprintmessage;
+    }
+    public string MazeNoNumPrint() {
+        string mazeprintmessage ="";
+        mazeprintmessage += PrintCellFrontWall(GetMazeRows(0));
+        for (int j = 0;j<Height();j++){
+            Cell[] rowOfCells = GetMazeRows(j);
+            mazeprintmessage += PrintCellLeftRightWall(rowOfCells);
+            mazeprintmessage += PrintCellBackWall(rowOfCells);
+        }
+        return mazeprintmessage;
+    }
+    public string MazePrintWithGmObj(){
+        string mazeprintmessage ="";
+        mazeprintmessage += PrintCellFrontWall(GetMazeRows(0));
+        for (int j = 0;j<Height();j++){
+            Cell[] rowOfCells = GetMazeRows(j);
+            mazeprintmessage += PrintCellLeftRightGmObjWall(rowOfCells);
+            mazeprintmessage += PrintCellBackWall(rowOfCells);
+        }
+        return mazeprintmessage;
+    }
+    public string PrintCellLeftRightGmObjWall(Cell[] cells){
+        string message = "";
+        foreach (Cell cell in cells){
+            if (cell.LeftWall){
+                message += "| ";
+            }else{
+                message += "  ";
+            }
+            if (cell.gameObject!=null){
+                message += $"{cell.gameObject.GetLabel()}";
+            }else{
+                message += $" ";
+            }
+            if (cell.RightWall){
+                message += " |";
+            }else{
+                message += "  ";
+            }
+        }
+        message+="\n";
+        return message;
     }
     public string PrintCellFrontWall(Cell[] cells){
         string message = "";
@@ -237,32 +342,6 @@ namespace MazeGame{
         }
         message+="\n";
         return message;       
-    }
-    public string MazePrint() {
-        string mazeprintmessage ="   ";
-        for (int i = 0;i<Width();i++){
-            mazeprintmessage += $"{Convert.ToString(i),3}  ";
-        }
-        mazeprintmessage += "\n".PadRight(4);
-        mazeprintmessage += PrintCellFrontWall(GetMazeRows(0));
-        for (int j = 0;j<Height();j++){
-            Cell[] rowOfCells = GetMazeRows(j);
-            mazeprintmessage += $"{j,3}";
-            mazeprintmessage += PrintCellLeftRightWall(rowOfCells);
-            mazeprintmessage += $"".PadLeft(3);
-            mazeprintmessage += PrintCellBackWall(rowOfCells);
-        }
-        return mazeprintmessage;
-    }
-    public string MazeNoNumPrint() {
-        string mazeprintmessage ="";
-        mazeprintmessage += PrintCellFrontWall(GetMazeRows(0));
-        for (int j = 0;j<Height();j++){
-            Cell[] rowOfCells = GetMazeRows(j);
-            mazeprintmessage += PrintCellLeftRightWall(rowOfCells);
-            mazeprintmessage += PrintCellBackWall(rowOfCells);
-        }
-        return mazeprintmessage;
     }
     public int CheckNumOfNodes(){
         int size = 0;
