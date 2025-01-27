@@ -58,7 +58,7 @@ namespace MazeGame{
                 return true;
             }
         }
-        public void SetGameObject(ref GameObject g){
+        public void SetGameObject(GameObject g){
             gameObject = g;
         }       
         public GameObject GetGameObject(){

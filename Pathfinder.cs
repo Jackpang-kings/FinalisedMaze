@@ -6,7 +6,7 @@ namespace MazeGame{
     class PathFinder {
         public Graph graph;
         public MazeGrid _maze;
-        Dictionary<Cell, Node> cellNodeMap;
+        public Dictionary<Cell, Node> cellNodeMap;
         public PathFinder(MazeGrid m,Graph g) {
             _maze = m;
             graph = g;
@@ -106,45 +106,45 @@ namespace MazeGame{
         message +="\n";
         return message;
     }
-    public string PrintCellLeftRightWall(Cell[] cells,List<Node> solution){ 
-        string message = "";
-        foreach (Cell cell in cells){
-            if (cell.LeftWall){
-                message += "| ";
-            }else{
-                message += "  ";
-            }
-            if (cell.IsNode(_maze.Width(),_maze.Height())){
-                if (solution.Contains(cellNodeMap[cell])){
-                    message += "#";
+        public string PrintCellLeftRightWall(Cell[] cells,List<Node> solution){ 
+            string message = "";
+            foreach (Cell cell in cells){
+                if (cell.LeftWall){
+                    message += "| ";
+                }else{
+                    message += "  ";
+                }
+                if (cell.IsNode(_maze.Width(),_maze.Height())){
+                    if (solution.Contains(cellNodeMap[cell])){
+                        message += "#";
+                    }else{
+                        message += " ";
+                    }
                 }else{
                     message += " ";
                 }
-            }else{
-                message += " ";
+                if (cell.RightWall){
+                    message += " |";
+                }else{
+                    message += "  ";
+                }
             }
-            if (cell.RightWall){
-                message += " |";
-            }else{
-                message += "  ";
-            }
+            message+="\n";
+            return message;
         }
-        message+="\n";
-        return message;
-    }
-    public string PrintCellBackWall(Cell[] cells){
-        string message = "";
-        foreach (Cell cell in cells){
-            if (cell.BackWall){
-                message += "+---+";
-            }else{
-                message += "+   +";
+        public string PrintCellBackWall(Cell[] cells){
+            string message = "";
+            foreach (Cell cell in cells){
+                if (cell.BackWall){
+                    message += "+---+";
+                }else{
+                    message += "+   +";
+                }
             }
+            message+="\n";
+            return message;       
         }
-        message+="\n";
-        return message;       
-    }
-    public string PrintMazeSolution(List<Node> solution) {
+        public string PrintMazeSolution(List<Node> solution) {
         string mazeprintmessage ="   ";
         for (int i = 0;i<_maze.Width();i++){
             mazeprintmessage += $"{Convert.ToString(i),3}  ";

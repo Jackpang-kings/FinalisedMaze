@@ -1,6 +1,10 @@
 {
   "ExpandedNodes": [
-    ""
+    "",
+    "\\bin",
+    "\\bin\\Debug",
+    "\\bin\\Debug\\net8.0"
   ],
+  "SelectedNode": "\\bin\\Debug\\net8.0\\game.txt",
   "PreviewInSolutionExplorer": false
 }

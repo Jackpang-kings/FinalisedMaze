@@ -4,12 +4,14 @@ using System.Collections.Generic;
 namespace MazeGame{
     class MazeGrid {
         public Cell[,] _mazeGrid;
+        public List<GameObject> gameObjects;
         int width, height;
     
-    public MazeGrid(int w,int h) {
+    public MazeGrid(int w,int h,List<GameObject> gos) {
         width = w;
         height = h;
         _mazeGrid = new Cell[width,height];
+        gameObjects = gos;
     }
     public Cell[] GetMazeRows(int j){
         Cell[] rowOfCells = new Cell[width];
@@ -41,7 +43,6 @@ namespace MazeGame{
                 }
             }
         }
-        
     }
     public int Width(){
         return width;
@@ -176,7 +177,15 @@ namespace MazeGame{
         int x = c.X();
         int y = c.Y();
         bool valid = false;
-        if (c.GetGameObject().IsMovable()){
+        if (c.GetGameObject()!=null){
+            if (c.GetGameObject().IsMovable()){
+                ChecKDirections();
+            }
+        }else{
+            ChecKDirections();
+        }
+        return valid;
+        void ChecKDirections(){
             if (direction=="UP"){
                 if (!c.FrontWall&&y-1>=0){
                     valid = true;
@@ -195,8 +204,6 @@ namespace MazeGame{
                 }
             }
         }
-	    
-        return valid;
     }
     public Cell Move(Cell currentCell,string direction){
         int x = currentCell.X();
@@ -224,14 +231,24 @@ namespace MazeGame{
         }
         void Swap(){
             GameObject holder = nextCell.GetGameObject();
-            nextCell.SetGameObject(ref object2Move);
-            currentCell.SetGameObject(ref holder);
+            nextCell.SetGameObject(object2Move);
+            if (holder!=null){
+                if (!holder.IsMovable()){
+                    currentCell.SetGameObject(null);
+                }else{
+                    currentCell.SetGameObject(holder);
+                }
+            }else{
+                currentCell.SetGameObject(null);
+            }
+            
         }
         return nextCell;
     }
     public void CreateDFSMaze(){
         GetMazeCell(0,0).FrontWall = false;
         GetMazeCell(Width()-1,Height()-1).BackWall = false;
+        GetMazeCell(Width()-1,Height()-1).Goal(true);
         DFSGenerateMaze(null,GetMazeCell(PickRandomNum(width)/2,PickRandomNum(height)/2));
         SetAllCellNotVisited();
         SetConnectedCells();
@@ -239,6 +256,7 @@ namespace MazeGame{
     public void CreatePrimsMaze(){
         GetMazeCell(0,0).FrontWall = false;
         GetMazeCell(Width()-1,Height()-1).BackWall = false;
+        GetMazeCell(Width()-1,Height()-1).Goal(true);
         PrimsMaze(GetMazeCell(PickRandomNum(width)/2,PickRandomNum(height)/2));
         SetAllCellNotVisited();
         SetConnectedCells();
@@ -269,14 +287,15 @@ namespace MazeGame{
         }
         return mazeprintmessage;
     }
-    public string MazePrintWithGmObj(){
+    public string MazePrintWithGmObj(MazeGrid maze){
         string mazeprintmessage ="";
-        mazeprintmessage += PrintCellFrontWall(GetMazeRows(0));
-        for (int j = 0;j<Height();j++){
-            Cell[] rowOfCells = GetMazeRows(j);
-            mazeprintmessage += PrintCellLeftRightGmObjWall(rowOfCells);
-            mazeprintmessage += PrintCellBackWall(rowOfCells);
+        mazeprintmessage += maze.PrintCellFrontWall(maze.GetMazeRows(0));
+        for (int j = 0;j<maze.Height();j++){
+            Cell[] rowOfCells = maze.GetMazeRows(j);
+            mazeprintmessage += maze.PrintCellLeftRightGmObjWall(rowOfCells);
+            mazeprintmessage += maze.PrintCellBackWall(rowOfCells);
         }
+        
         return mazeprintmessage;
     }
     public string PrintCellLeftRightGmObjWall(Cell[] cells){
@@ -342,6 +361,81 @@ namespace MazeGame{
         }
         message+="\n";
         return message;       
+    }
+    public int FindLimit(int a,bool sign,int radius,bool direction){
+        int limit;
+        int count = 0;
+        if (direction == true){
+            // x
+            limit = width-1;
+        }else{
+            // y
+            limit = height-1;
+        }
+        // Determine adding or subtracting
+        if (sign==true){
+            // adding
+            while(a<limit&&count<radius){
+                a++;
+                count++;
+            }
+        }else{
+            // subtracting
+            while(a>0&&count<radius){
+                a--;
+                count++;
+            }
+        }
+        return a;
+    }
+    public string PrintCameraAngle(Cell currentCell,int radius){
+        // Find boundaries
+        int x = currentCell.X();
+        int y= currentCell.Y();
+        int xRight = FindLimit(x,true,radius,true);
+        int yUpper = FindLimit(y,false,radius,false);
+        int xLeft = FindLimit(x,false,radius,true);
+        int yLower = FindLimit(y,true,radius,false);
+
+        int xSize = Math.Abs(xRight-xLeft)+1;
+        int ySize = Math.Abs(yLower-yUpper)+1;
+
+        MazeGrid cameraAngle = new MazeGrid(xSize,ySize,new List<GameObject>());
+        int a = 0;
+        int b = 0;
+
+        // Put original maze into cameraAngle maze
+        for (int i = xLeft; i <= xRight; i++){
+            for (int j = yUpper; j <= yLower;j++){
+                cameraAngle._mazeGrid[a,b] = _mazeGrid[i,j];
+                b++;
+            }
+            a++;
+            b=0;
+        }
+        return MazePrintWithGmObj(cameraAngle);
+
+    }
+    public string PrintAddGameObjects(MazeGrid maze, string mazePrint){
+        char[] cells = mazePrint.ToCharArray();
+        if (gameObjects!=null) {
+            foreach (GameObject obj in gameObjects){
+                if (obj.x<maze.Width()&&obj.x>=0&&obj.y<maze.Height()&&obj.y>=0){
+                    int x = Math.Abs(maze.GetMazeCell(0,0).X() - obj.x);
+                    int y = Math.Abs(maze.GetMazeCell(0,0).Y() - obj.y)+1;
+                    int row = (maze.Width()*5+1)*(1+2*(y-1))+2+x*5;
+                    cells[row] = obj.GetLabel();
+                }
+            }
+        }
+        string newPrint = "";
+        foreach (char c in cells){
+            newPrint+=c;
+        }
+        return newPrint;
+    }
+    public void AddGameObject(GameObject g){
+        gameObjects.Add(g);
     }
     public int CheckNumOfNodes(){
         int size = 0;

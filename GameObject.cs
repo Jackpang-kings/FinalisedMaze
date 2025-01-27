@@ -6,10 +6,10 @@ namespace MazeGame{
         public int x{ get; set; }
         public int y{ get; set; }
         string name;
-        string label;
+        char label;
         bool interaction;
         bool movable;
-        public GameObject(int a,int b,string n, string t,bool i, bool m){
+        public GameObject(int a,int b,string n, char t,bool i, bool m){
             x = a;
             y = b;
             name = n;
@@ -36,7 +36,7 @@ namespace MazeGame{
         {
             return $"GameObject(Name: {name}, Position: ({x}, {y}), Interacting: {interaction}, Movable: {movable})";
         }
-        public string GetLabel(){
+        public char GetLabel(){
             return label;
         }
     }
