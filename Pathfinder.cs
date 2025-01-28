@@ -49,6 +49,7 @@ namespace MazeGame{
                 }
                 found=false;
             }
+            x = c.X();
             if (!c.RightWall){
                 while(!found&&x<_maze.Width()-1){
                     x++;
@@ -71,6 +72,7 @@ namespace MazeGame{
                 }
                 found=false;
             }
+            y = c.Y();
             if (!c.BackWall){
                 while(!found&&y<_maze.Height()-1){
                     y++;
@@ -85,7 +87,7 @@ namespace MazeGame{
         public void SetGraphRelationship(Node newNode, Node prevNode){
             int d = graph.GetDistanceBetweenNodes(newNode,prevNode);
             Edge e = new Edge(prevNode,d);
-            newNode.SetEdge(e);
+            newNode.AddEdge(e);
         }
         public Node Cell2Node(Cell c){
             if (cellNodeMap.ContainsKey(c)){
