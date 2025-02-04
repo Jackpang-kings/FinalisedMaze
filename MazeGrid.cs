@@ -1,10 +1,12 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 
 namespace MazeGame{
     class MazeGrid {
         public Cell[,] _mazeGrid;
         public List<GameObject> gameObjects;
+        public ArrayList differentObjects;
         int width, height;
     
     public MazeGrid(int w,int h,List<GameObject> gos) {
@@ -208,42 +210,53 @@ namespace MazeGame{
     public Cell Move(Cell currentCell,string direction){
         int x = currentCell.X();
         int y = currentCell.Y();
-        GameObject object2Move = currentCell.GetGameObject();
+        GameObject object2Move = gameObjects[0];
+        //(GameObject object2Move,int index) = FindObject(currentCell.X(),currentCell.Y());
         Cell nextCell;
         if (direction=="UP"){
             nextCell = _mazeGrid[x,y-1];
             object2Move.y = y-1;
-            Swap();
+            Swap(x,object2Move.y);
         }else if (direction=="DOWN"){
             nextCell = _mazeGrid[x,y+1];
             object2Move.y = y+1;
-            Swap();
+            Swap(x,object2Move.y);
         }else if (direction=="LEFT"){
             nextCell = _mazeGrid[x-1,y];
             object2Move.x = x-1;
-            Swap();
+            Swap(object2Move.x,y);
         }else if (direction=="RIGHT"){
             nextCell = _mazeGrid[x+1,y];
             object2Move.x = x+1;
-            Swap();
+            Swap(object2Move.x,y);
         }else{
             return currentCell;
         }
-        void Swap(){
-            GameObject holder = nextCell.GetGameObject();
-            nextCell.SetGameObject(object2Move);
-            if (holder!=null){
-                if (!holder.IsMovable()){
-                    currentCell.SetGameObject(null);
+        void Swap(int a,int b){
+            var holder = FindObject(a,b);
+            GameObject obj = holder.Item1;
+            int index = holder.Item2;
+            if (obj!=null){
+                if (!obj.IsMovable()){
+                    if (index!=0){
+                        gameObjects.RemoveAt(index);
+                    }
                 }else{
-                    currentCell.SetGameObject(holder);
+                    if(MoveValid(_mazeGrid[a,b],direction)){
+                        Move(_mazeGrid[a,b],direction);
+                    }
                 }
-            }else{
-                currentCell.SetGameObject(null);
             }
-            
         }
         return nextCell;
+    }
+    public (GameObject,int) FindObject(int x,int y){
+        for(int i = 1;i<gameObjects.Count;i++){
+            if (gameObjects[i].x == x && gameObjects[i].y == y){
+                return (gameObjects[i],i);
+            }
+        }
+        return (null,-1);
     }
     public void CreateDFSMaze(){
         GetMazeCell(0,0).FrontWall = false;
@@ -292,11 +305,11 @@ namespace MazeGame{
         mazeprintmessage += maze.PrintCellFrontWall(maze.GetMazeRows(0));
         for (int j = 0;j<maze.Height();j++){
             Cell[] rowOfCells = maze.GetMazeRows(j);
-            mazeprintmessage += maze.PrintCellLeftRightGmObjWall(rowOfCells);
+            mazeprintmessage += maze.PrintCellLeftRightWall(rowOfCells);
             mazeprintmessage += maze.PrintCellBackWall(rowOfCells);
         }
         
-        return mazeprintmessage;
+        return PrintAddGameObjects(maze,mazeprintmessage);
     }
     public string PrintCellLeftRightGmObjWall(Cell[] cells){
         string message = "";
@@ -420,10 +433,10 @@ namespace MazeGame{
         char[] cells = mazePrint.ToCharArray();
         if (gameObjects!=null) {
             foreach (GameObject obj in gameObjects){
-                if (obj.x<maze.Width()&&obj.x>=0&&obj.y<maze.Height()&&obj.y>=0){
-                    int x = Math.Abs(maze.GetMazeCell(0,0).X() - obj.x);
-                    int y = Math.Abs(maze.GetMazeCell(0,0).Y() - obj.y)+1;
-                    int row = (maze.Width()*5+1)*(1+2*(y-1))+2+x*5;
+                int x = obj.x-maze.GetMazeCell(0,0).X();
+                int y = obj.y-maze.GetMazeCell(0,0).Y();
+                if (x<maze.Width()&&x>=0&&y<maze.Height()&&y>=0){
+                    int row = (maze.Width()*5+1)*(1+2*(y))+2+x*5;
                     cells[row] = obj.GetLabel();
                 }
             }

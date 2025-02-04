@@ -45,25 +45,36 @@ class Program {
         }while(valid==false);
         MazeGrid gameboard = new MazeGrid(intcommand[0],intcommand[1],new List<GameObject>());
         // Initialising cells in the maze
-        gameboard.InitialiseMaze();
         string ch;
         do{
             Console.WriteLine("D)Depth-first trarversal P)Prim's Algorithm Q)Quit");
             ch = Console.ReadLine().ToUpper();
             if (ch=="D"|ch==""){
                 // Generating maze with depth-first search
+                gameboard.InitialiseMaze();
                 gameboard.CreateDFSMaze();
                 Console.WriteLine("Generated maze using Depth-first traversal");
-                Console.WriteLine($"{gameboard.MazeNoNumPrint()}");
+                if (intcommand[0]<31){
+                    Console.WriteLine($"{gameboard.MazeNoNumPrint()}");
+                }else{
+                    Console.WriteLine("Too wide to print the whole maze");
+                }
                 Console.WriteLine("R) Regenerate, Enter) Leave Creating Random Maze");
                 ch = Console.ReadLine().ToUpper();
             }else if (ch=="P"){
                 // Generating maze with Prim's Algorithm
+                gameboard.InitialiseMaze();
                 gameboard.CreatePrimsMaze();
                 Console.WriteLine("Generated maze using Prim's Algorithm");
-                Console.WriteLine($"{gameboard.MazeNoNumPrint()}");
+                if (intcommand[0]<31){
+                    Console.WriteLine($"{gameboard.MazeNoNumPrint()}");
+                }else{
+                    Console.WriteLine("Too wide to print the whole maze");
+                }
                 Console.WriteLine("R) Regenerate, Enter) Leave Creating Random Maze");
                 ch = Console.ReadLine().ToUpper();
+            }else if (ch=="Q"){
+
             }else{
                 ch ="R";
             }
@@ -74,13 +85,24 @@ class Program {
         // Output gameTextfile.txt
         OutputTextFile(gameboard);
 
+
+        // Starting pos
+        int startx = gameboard.Width()/2;
+        int starty = gameboard.Height()/2;
         // Move GameObject in maze
-        GameObject player = new GameObject(0,0,"Player1",'8',true,true); 
+        GameObject player = new GameObject(startx,starty,"Player1",'8',true,true); 
+        GameObject wall = new GameObject(0, 1, "Wall",'W', false, false);
+        GameObject box = new GameObject(1, 2, "Box",'B', true, true);
+        GameObject key = new GameObject(2, 3, "Key",'K', true, false);
         string message = "not moved";
-        Cell startCell = gameboard.GetMazeCell(0,0);
+        Cell startCell = gameboard.GetMazeCell(startx,starty);
 
         // Place the GameObject in (0,0)
-        startCell.SetGameObject(player);
+        //startCell.SetGameObject(player);
+        gameboard.AddGameObject(player);
+        gameboard.AddGameObject(wall);
+        gameboard.AddGameObject(box);
+        gameboard.AddGameObject(key);
         Cell endCell = gameboard.GetMazeCell(gameboard.Width()-1,gameboard.Height()-1);
 
         Cell nextCell;
@@ -93,6 +115,7 @@ class Program {
             Console.Clear();
             startCell = nextCell;
             Console.WriteLine(gameboard.PrintCameraAngle(startCell,radius));
+            //Console.WriteLine(gameboard.PrintAddGameObjects(gameboard,gameboard.MazeNoNumPrint()));
             Console.WriteLine(message);
         }
         Console.ReadKey();
@@ -444,7 +467,8 @@ class Program {
             int x = nodes[i+1].X();
 		    int y = nodes[i+1].Y(); 
 		    Cell nextCell = maze.GetMazeCell(x,y);
-		    nextCell.SetGameObject(new GameObject(x,y,"Mark "+0,'#',false,false));
+            maze.AddGameObject(new GameObject(x,y,"Mark "+i,'#',false,false));
+		    //nextCell.SetGameObject(new GameObject(x,y,"Mark "+0,'#',false,false));
 		    int count = graph.GetDistanceBetweenNodes(nodes[i],nodes[i+1]);
 		    string direction = CompareCell(currentCell,nextCell);
 		
@@ -462,8 +486,9 @@ class Program {
                     b=y+j;
                 }
                 // Sets object marks
-                nextCell = maze._mazeGrid[a,b];
-                nextCell.SetGameObject(new GameObject(a,b,"Mark "+j,'#',false,false));
+                //nextCell = maze._mazeGrid[a,b];
+                maze.AddGameObject(new GameObject(a,b,"Mark "+i,'#',false,false));
+                //nextCell.SetGameObject(new GameObject(a,b,"Mark "+j,'#',false,false));
             }
 		    currentCell = maze.GetMazeCell(x,y);
         }

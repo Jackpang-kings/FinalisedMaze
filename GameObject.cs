@@ -2,13 +2,21 @@ using System;
 using System.Collections.Generic;
 
 namespace MazeGame{
-    class GameObject{
+    public class GameObject{
         public int x{ get; set; }
         public int y{ get; set; }
-        string name;
-        char label;
-        bool interaction;
-        bool movable;
+        public string name;
+        public char label;
+        public bool interaction;
+        public bool movable;
+        public GameObject(){
+            x=0;
+            y=0;
+            name="";
+            label=' ';
+            interaction = false;
+            movable = false;
+        }
         public GameObject(int a,int b,string n, char t,bool i, bool m){
             x = a;
             y = b;
@@ -40,12 +48,28 @@ namespace MazeGame{
             return label;
         }
     }
-    //class Item : GameObject {
+    class Player : GameObject {
+        protected List<Item> inventory;
+        protected int health;
+        public Player(int a,int b,string n, List<Item> inv){
+            x = a;
+            y = b;
+            name = n;
+            health = 5;
+            interaction = true;
+            movable = true;
+            label = '8';
+            inventory = inv;
+        }
+        
+    }
+    class Item:GameObject {
+        
+    }
+    class Mob : GameObject {
+        protected int damage;    
+        protected int range;
 
         
-    //}
-    //class Mob : GameObject {
-        
-        
-    //}
+    }
 }
