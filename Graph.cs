@@ -5,10 +5,15 @@ namespace MazeGame{
         
         List<Node> nodes;
         
+        public Graph(){
+            nodes = new List<Node>();
+        }
         public Graph(List<Node> n){
             nodes = n;
         }
-        
+        public void SetNewNodeList(){
+            nodes = new List<Node>();
+        }
         public void SetAllNodeNotVisited(){
             foreach (var node in nodes){
                 node.Visited(false);

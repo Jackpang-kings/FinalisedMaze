@@ -23,6 +23,7 @@ namespace MazeGame{
                     }
                 } 
             }
+            LinkNodeRelationships();
         }
         public void LinkNodeRelationships(){
             _maze.SetAllCellNotVisited();
@@ -108,6 +109,53 @@ namespace MazeGame{
         message +="\n";
         return message;
     }
+        public List<object> ReturnPath(int startX, int startY, int endX, int endY, int d){
+            // Step 1: Declare variables
+            Cell currCell = _maze.GetMazeCell(startX,startY);
+            MazeGrid maze = _maze;
+            List<object> list = new List<object>();
+
+            // Step 2: Perform Dijkstra's Algorithm between two nodes
+            Node startNode = Cell2Node(maze.GetMazeCell(startX,startY));  // Starting cell
+            Node endNode = Cell2Node(maze.GetMazeCell(endX,endY));    // Goal cell
+            var solution = graph.DijkstraAlgorithm(startNode,endNode);
+
+            // Step 3: Output the solution
+            List<Node> nodes = solution.Item1;
+            for (int i = 0; i < nodes.Count-1;i++){
+                int nx = nodes[i+1].X();
+                int ny = nodes[i+1].Y(); 
+                Cell nextCell = _maze.GetMazeCell(nx,ny);
+                list.Add(new GameObject(nx,ny,"Mark "+i,'#',false));
+                //nextCell.SetGameObject(new GameObject(x,y,"Mark "+0,'#',false,false));
+                int count = graph.GetDistanceBetweenNodes(nodes[i],nodes[i+1]);
+            
+            // Repeat n times in specific direction by comparing two nodes
+                for(int j = 1; j < count;j++){
+                    int a = startY;
+                    int b = startY;
+                    if (nextCell.X() > currCell.X()){
+                        a = startX-j;
+                    }else if (nextCell.X() < currCell.X()){
+                        a = startY+j;
+                    }else if (nextCell.Y() > currCell.Y()){
+                        b = startX-j;
+                    }else if (nextCell.Y() < currCell.Y()){
+                        b=startY+j;
+                    }
+                    // Sets object marks
+                    //nextCell = maze._mazeGrid[a,b];
+                    list.Add(new GameObject(a,b,"Mark "+i,'#',false));
+                    //nextCell.SetGameObject(new GameObject(a,b,"Mark "+j,'#',false,false));
+                }
+                currCell = maze.GetMazeCell(startX,startY);
+            }
+            if (list.Count<d){
+                return list;
+            }else{
+                return list.GetRange(0,d);
+            }   
+            }
         public string PrintCellLeftRightWall(Cell[] cells,List<Node> solution){ 
             string message = "";
             foreach (Cell cell in cells){

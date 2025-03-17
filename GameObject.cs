@@ -1,5 +1,7 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Security.Cryptography;
 
 namespace MazeGame{
     public class GameObject{
@@ -7,69 +9,183 @@ namespace MazeGame{
         public int y{ get; set; }
         public string name;
         public char label;
-        public bool interaction;
-        public bool movable;
         public GameObject(){
             x=0;
             y=0;
             name="";
             label=' ';
-            interaction = false;
-            movable = false;
+            
         }
-        public GameObject(int a,int b,string n, char t,bool i, bool m){
+        public GameObject(int a,int b,string n, char t, bool m){
             x = a;
             y = b;
             name = n;
-            interaction = i;
-            movable = m;
             label = t;
         }
         public string GetName(){
             return name;
         }
-        public bool IsInteracting(){
-            return interaction;
-        }
-        public void Interaction(bool val){
-            interaction = val;
-        }
-        public bool IsMovable(){
-            return movable;
-        }
-        public void Movable(bool val){
-            movable = val;
-        }
+
+        public void Move(int a, int b){
+            x=a;
+            y=b;
+    }
         public override string ToString()
         {
-            return $"GameObject(Name: {name}, Position: ({x}, {y}), Interacting: {interaction}, Movable: {movable})";
+            return $"GameObject(Name: {name}, Position: ({x}, {y}))";
         }
         public char GetLabel(){
             return label;
         }
     }
-    class Player : GameObject {
-        protected List<Item> inventory;
-        protected int health;
-        public Player(int a,int b,string n, List<Item> inv){
+
+    class Navigator : GameObject {
+        public PathFinder pathFinder;
+        protected int distance;
+        public Navigator(PathFinder p){
+            x=0;
+            y=0;
+            name = "Navigator";
+            pathFinder = p;
+        }
+        public Navigator(int a, int b,string n,PathFinder cF,int d){
             x = a;
             y = b;
             name = n;
-            health = 5;
-            interaction = true;
-            movable = true;
-            label = '8';
-            inventory = inv;
+            label = 'N';
+            pathFinder = cF;
+            distance = d;
         }
-        
-    }
-    class Item:GameObject {
-        
+        public int GetDistance(){
+            return distance;
+        }
     }
     class Mob : GameObject {
-        protected int damage;    
+        protected int damage;
         protected int range;
+        protected int health;
+        protected bool following;
+        protected List<object> objectToFollow;
+        public PathFinder pathFinder;
+        public Mob(){
+            x = 0;
+            y = 0;
+            name = "Mob";
+            health = 10;
+            damage = 0;
+            range = 0;
+            pathFinder = null;
+            following = false;
+            objectToFollow = new List<object>();
+        }
+        public Mob(int a,int b,string n,int c, int d, int h,PathFinder p){
+            x = a;
+            y = b;
+            name = n;
+            health = h;
+            damage = c;
+            range = d;
+            label = 'M';
+            pathFinder = p;
+            following = false;
+            objectToFollow = null;
+        }
+        public bool GetFollowing(){
+            return following;
+        }
+        public void Tick(Cell currentCell){
+            CheckIfPlayerIsWithinRange(currentCell);
+            if (objectToFollow!=null&&following==true){
+                try{
+                    GameObject holder = (GameObject)objectToFollow[0];
+                    x = holder.x;
+                    y = holder.y;
+                    objectToFollow.RemoveAt(0);
+                }catch{
+                    objectToFollow = pathFinder.ReturnPath(x,y,currentCell.X(),currentCell.Y(),range);
+                }           
+            }else{
+                Patrol(pathFinder._maze.GetMazeCell(x,y));
+            }
+        }
+        public void CheckIfPlayerIsWithinRange(Cell c){
+            Node startNode = pathFinder.Cell2Node(pathFinder._maze.GetMazeCell(x,y));  // Starting cell
+            Node endNode = pathFinder.Cell2Node(pathFinder._maze.GetMazeCell(c.X(),c.Y()));    // Goal cell
+            // if node is null
+            if (startNode==null|endNode==null){
+                following = false;
+            }else{
+                var solution = pathFinder.graph.DijkstraAlgorithm(startNode,endNode);
+                if (solution.Item2[endNode.getNodeID()]<=range){
+                    following = true;
+                }
+            }
+        }
+        public void Patrol(Cell c){
+            Cell nextCell = pathFinder._maze.NeighbourCell(c.connectedCells,false);
+            Move(nextCell.X(),nextCell.Y());
+        }
+    }
+    class Tool:GameObject {
+        protected bool breakWall;
+        protected bool openWall;
+        public Tool(int a, int b, string n,bool br, bool op){
+            x = a;
+            y = b;
+            name = n;
+            label = 'T';
+            breakWall = br;
+            openWall = op;
+        }
+        public void BreakWall(MazeGrid maze){
 
-        
+        }
+        public void OpenWall(MazeGrid maze,string direction){
+            Cell currentCell = maze.GetMazeCell(x,y);
+            if(currentCell != null){
+                int x = currentCell.X();
+                int y = currentCell.Y();
+                if (direction=="UP"){
+                    if (!currentCell.FrontWall&&y-1>=0){
+                        
+                    }
+                }else if (direction=="DOWN"){
+                    if (y+1<maze.Height()&&!currentCell.BackWall){
+                        
+                    }
+                }else if (direction=="LEFT"){
+                    if (!currentCell.LeftWall&&x-1>=0){
+                        
+                    }
+                }else if (direction=="RIGHT"){
+                    if (!currentCell.RightWall&&x+1<maze.Width()){
+                        
+                    }
+                }
+            }
+        }
+    }
+    class Weapon:GameObject {
+        protected int damage;
+        public Weapon(int a, int b, string n, int d){
+            x = a;
+            y = b;
+            name = n;
+            label = 'W';
+            damage = d;
+        }
+    }
+    class Food:GameObject {
+        protected int heal;
+        public Food(int a, int b, string n, int h){
+            x = a;
+            y = b;
+            name = n;
+            label = 'F';
+            heal = h;
+        }
+        public int GetHeal(){
+            return heal;
+        }
     }
 }

@@ -230,7 +230,7 @@ ENDPROCEDURE
 #### RetrieveAdjacentCells
 **Parameter**: List of Cells from edges\
 >return **all cells that are not visited**
-### NeighbourNode
+###\ NeighbourNode
 **Parameter**: Cell
 >Get List of Cells from **RetrieveAdjacentNodes**
 >Get the first **Cell** from **RetrieveAdjacentNodes**

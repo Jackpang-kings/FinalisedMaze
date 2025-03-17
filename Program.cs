@@ -1,11 +1,12 @@
 ﻿using System;
+using System.ComponentModel.DataAnnotations;
 using System.Reflection.Metadata;
 using System.Text;
 namespace MazeGame { 
 class Program { 
     static void Main() {
         string ch = "";
-        Console.WriteLine("T)test script G)Start Game Q)Quit");
+        Console.WriteLine("T)test script C)Start Classic Game Q)Quit");
         //testScript();
         ch = Console.ReadLine().ToUpper();
         switch (ch) {
@@ -13,8 +14,8 @@ class Program {
                 testScript();
                 break;
             }
-            case "G":{
-                Game();
+            case "C":{
+                ClassicGame();
                 break;
             }
             case "Q":{
@@ -22,111 +23,112 @@ class Program {
             }
         }
     }
-    static void Game() {
-        bool valid = false;
-        int[] intcommand = new int[2];
+    static void SpeedGame(int i,int j,string t, int playerview){
+        
+    }
+    static void ClassicGame() {
+        bool valid = true;
         do {
-            try{
-                Console.Write("Maze size (width,depth): ");
-                string size = Console.ReadLine();
-                string[] strcommand = size.Split(",");
-                for (int i = 0; i < strcommand.Length;i++){
-                    intcommand[i] = int.Parse(strcommand[i]);
-                }
-                if (intcommand[0]>0){
-                    valid = true;
-                }else{
-                    Console.WriteLine("Invalid choice: Either width is too large or size is negative");
-                    valid = false;
-                }
-            }catch{
-                Console.WriteLine("Invalid choice");
+            string debugMessage = "conversion";
+            int difficulty = 0;
+            Console.WriteLine("Which difficulty? \n1) Beginner 2) Easy 3) Medium 4) Hard");
+            Console.Write("Difficulty: ");
+            string ch = Console.ReadLine().ToUpper();
+            int.TryParse(ch, out difficulty);
+            if (difficulty==0) {
+                debugMessage = "level";
+            }
+            if (difficulty == 1){
+                Console.WriteLine("You chose Beginner level");
+                Game(9,9,"D",4,null);
+                valid = true;
+            }else if (difficulty == 2){
+                Console.WriteLine("You chose Easy level");
+                Game(12,12,"D",3,null);
+                valid = true;
+            }else if (difficulty == 3){
+                Console.WriteLine("You chose Medium level");
+                Game(21,21,"P",2,null);
+                valid = true;
+            }else if (difficulty == 4){
+                Console.WriteLine("You chose Hard level");
+                Game(30,30,"P",1,null);
+                valid = true;
+            }else{
+                valid = false;
+                Console.WriteLine("Invalid "+debugMessage);
             }
         }while(valid==false);
-        MazeGrid gameboard = new MazeGrid(intcommand[0],intcommand[1],new List<GameObject>());
+    }
+    static void Game(int i,int j,string t, int playerview,List<object> gameObjects) {
+        MazeGrid gameboard = new MazeGrid(i,j);
         // Initialising cells in the maze
-        string ch;
-        do{
-            Console.WriteLine("D)Depth-first trarversal P)Prim's Algorithm Q)Quit");
-            ch = Console.ReadLine().ToUpper();
-            if (ch=="D"|ch==""){
-                // Generating maze with depth-first search
-                gameboard.InitialiseMaze();
-                gameboard.CreateDFSMaze();
-                Console.WriteLine("Generated maze using Depth-first traversal");
-                if (intcommand[0]<31){
-                    Console.WriteLine($"{gameboard.MazeNoNumPrint()}");
-                }else{
-                    Console.WriteLine("Too wide to print the whole maze");
-                }
-                Console.WriteLine("R) Regenerate, Enter) Leave Creating Random Maze");
-                ch = Console.ReadLine().ToUpper();
-            }else if (ch=="P"){
-                // Generating maze with Prim's Algorithm
-                gameboard.InitialiseMaze();
-                gameboard.CreatePrimsMaze();
-                Console.WriteLine("Generated maze using Prim's Algorithm");
-                if (intcommand[0]<31){
-                    Console.WriteLine($"{gameboard.MazeNoNumPrint()}");
-                }else{
-                    Console.WriteLine("Too wide to print the whole maze");
-                }
-                Console.WriteLine("R) Regenerate, Enter) Leave Creating Random Maze");
-                ch = Console.ReadLine().ToUpper();
-            }else if (ch=="Q"){
-
-            }else{
-                ch ="R";
-            }
-            Console.Clear();
-        }while (ch=="R");
+        int goalx = gameboard.GetEndX();
+        int goaly = gameboard.GetEndY();
+        gameboard.InitialiseMaze();
+        if (t=="P"){
+            // Generating maze with Prim's Algorithm
+            gameboard.CreatePrimsMaze();
+            Console.WriteLine("Generated maze using Prim's Algorithm");
+        }else{
+            // Generating maze with depth-first search
+            gameboard.CreateDFSMaze();
+            Console.WriteLine("Generated maze using Depth-first traversal");
+        }
+        if (i<31){
+                Console.WriteLine($"{gameboard.MazeNoNumPrint()}");
+        }else{
+            Console.WriteLine("Too wide to print the whole maze");
+        }
         
         Console.WriteLine("Read Entire maze from "+Environment.CurrentDirectory+"/game.txt");
         // Output gameTextfile.txt
-        OutputTextFile(gameboard);
+        OutputTextFile(gameboard.MazeNoNumPrint());
 
 
         // Starting pos
-        int startx = gameboard.Width()/2;
-        int starty = gameboard.Height()/2;
+        int startx = gameboard.PickRandomNum((i-1)/3);
+        int starty = gameboard.PickRandomNum((j-1)/3);
         // Move GameObject in maze
-        GameObject player = new GameObject(startx,starty,"Player1",'8',true,true); 
-        GameObject wall = new GameObject(0, 1, "Wall",'W', false, false);
-        GameObject box = new GameObject(1, 2, "Box",'B', true, true);
-        GameObject key = new GameObject(2, 3, "Key",'K', true, false);
+        Player player = new Player(startx,starty,"Player1",7); 
+        GameObject box = new GameObject(1, 2, "Box",'B', false);
+        GameObject key = new GameObject(2, 3, "Key",'K', false);
+        Navigator compass= new Navigator(0,1,"Compass",new PathFinder(gameboard,new Graph(new List<Node>())),5);
+        GameObject goal = new GameObject(goalx,goaly,"Goal Indicator", 'G',false);
+        PathFinder pathFinder = new PathFinder(gameboard,new Graph()); // Assuming PathFinder has a constructor that takes a MazeGrid
+        Mob mob = new Mob(5, 5, "Mob", 1, 3, 10, pathFinder); // Mob starts at (5,5)
         string message = "not moved";
         Cell startCell = gameboard.GetMazeCell(startx,starty);
 
         // Place the GameObject in (0,0)
         //startCell.SetGameObject(player);
-        gameboard.AddGameObject(player);
-        gameboard.AddGameObject(wall);
-        gameboard.AddGameObject(box);
-        gameboard.AddGameObject(key);
+        gameboard.AddObject(player);
+        gameboard.AddObjects(new List<object> {compass,box,key,goal,mob});
         Cell endCell = gameboard.GetMazeCell(gameboard.Width()-1,gameboard.Height()-1);
 
         Cell nextCell;
-        int radius = 2;
+        int radius = playerview;
         
         while (message!="PAUSE"&&message!="CLEAR"){
             // Instructions for inputs
-            Console.WriteLine("Arrow keys to move, E) Check if you are at goal D) To find path to goal");
-            (nextCell,message) = Input(gameboard,startCell,endCell);
+            Console.WriteLine("Arrow keys to move, E) Check if you are at goal D) To find path to goal\n\nTab) To open Inventory Spacebar) To use item holding X) To check for interactions");
+            (nextCell,message) = Input(gameboard,startCell,endCell,player);
             Console.Clear();
             startCell = nextCell;
+            mob.Tick(startCell);
             Console.WriteLine(gameboard.PrintCameraAngle(startCell,radius));
             //Console.WriteLine(gameboard.PrintAddGameObjects(gameboard,gameboard.MazeNoNumPrint()));
             Console.WriteLine(message);
         }
         Console.ReadKey();
     } 
-    static void OutputTextFile(MazeGrid maze){
+    static void OutputTextFile(string print){
         string path = Environment.CurrentDirectory+"/game.txt";
         //Console.WriteLine(path);
         // Write file using StreamWriter
         using (StreamWriter writer = new StreamWriter(path))
         {
-            writer.WriteLine(maze.MazeNoNumPrint());
+            writer.WriteLine(print);
             writer.Close();
         }
     }
@@ -138,7 +140,7 @@ class Program {
         //testGameObject();
         //testGameObjectAndCell();
         //testEnqueue();
-        //MazeGrid dfsmaze = testCreateRandomDFSMaze(40,40);
+        //MazeGrid dfsmaze = testCreateRandomDFSMaze(10,10);
         //testDijkstra(dfsmaze);
         //testBFS(dfsmaze);
         //MazeGrid primsMaze = testCreateRandomPrimsMaze(40,40);
@@ -148,7 +150,65 @@ class Program {
         //GameBreadthFirst(testCreateRandomGraph(4,4));
         //testCompareCell();
         //OutputTextFile(testCreateRandomDFSMaze(10,10));
-        Console.ReadKey();
+        //testPlayer();
+        testMob();
+        TestMobPatrolsWhenPlayerIsOutOfRange();
+    }
+    static void testMob(){
+            // Arrange
+            var maze = new MazeGrid(10, 10); // Assuming MazeGrid has a constructor that takes width and height
+            var player = new Player(6,5,"TestPlayer",7);
+            maze.InitialiseMaze();
+            maze.CreateDFSMaze();
+            maze.ClearWall(maze.GetMazeCell(player.x, player.y),maze.GetMazeCell(5, 5));
+            maze.AddObject(player);
+            var pathFinder = new PathFinder(maze,new Graph()); // Assuming PathFinder has a constructor that takes a MazeGrid
+            var mob = new Mob(5, 5, "TestMob", 1, 3, 10, pathFinder); // Mob starts at (5,5)
+            maze.AddObject(mob);
+            
+            Console.WriteLine(maze.MazePrintWithGmObj(maze));
+            var currentCell = maze.GetMazeCell(player.x,player.y); // Get the current cell of the player
+            // Act
+            mob.Tick(currentCell);
+            mob.Tick(currentCell);
+            Console.WriteLine(maze.MazePrintWithGmObj(maze));
+            Console.WriteLine($"Following: {mob.GetFollowing().ToString()}");
+            Console.WriteLine($"{mob.x},{mob.y}");
+            // Additional checks can be added here to verify the path taken by the mob
+        }
+
+    static void TestMobPatrolsWhenPlayerIsOutOfRange()
+        {
+            // Arrange
+            var maze = new MazeGrid(10, 10);
+            var player = new Player(8,8,"TestPlayer",7);
+            maze.InitialiseMaze();
+            maze.CreateDFSMaze();
+            maze.AddObject(player);
+            var pathFinder = new PathFinder(maze,new Graph()); // Assuming PathFinder has a constructor that takes a MazeGrid
+            var mob = new Mob(5, 5, "TestMob", 1, 3, 10, pathFinder); // Mob starts at (5,5)
+            maze.AddObject(mob);
+            
+            Console.WriteLine(maze.MazePrintWithGmObj(maze));
+            var currentCell = maze.GetMazeCell(player.x,player.y); // Get the current cell of the player
+            // Act
+            mob.Tick(currentCell);
+            mob.Tick(currentCell);
+            Console.WriteLine(maze.MazePrintWithGmObj(maze));
+            Console.WriteLine($"Following: {mob.GetFollowing().ToString()}");
+            Console.WriteLine($"{mob.x},{mob.y}");
+            // Assert
+            // Additional checks can be added here to verify the new position of the mob after patrolling
+        }
+    static void testPlayer(){
+        MazeGrid m = testCreateRandomPrimsMaze(3,3);
+        Player player = new Player(0,0,"Player1",7); 
+        Navigator n = new Navigator(new PathFinder(m,new Graph()));
+        GameObject g = new GameObject(0,0,"Object",'O',false);
+        m.AddObjects([n,g]);
+        player.AddItem(n);
+        Console.WriteLine(player.DisplayInventory());
+        //player.GetInventory
     }
     static void testCompareCell(){
         Cell cell1 = new Cell(0,0);
@@ -187,14 +247,14 @@ class Program {
         Console.WriteLine(cell1.ToString());
         Console.WriteLine(cell2.ToString());
         Console.WriteLine();
-        MazeGrid mazeGrid= new MazeGrid(1,1,new List<GameObject>());
+        MazeGrid mazeGrid= new MazeGrid(1,1);
         Console.Write(mazeGrid.PrintCellFrontWall(cells));
         Console.Write(mazeGrid.PrintCellLeftRightWall(cells));
         Console.Write(mazeGrid.PrintCellBackWall(cells));
         Console.WriteLine();
     }
     static void testMazeGrid(){
-        MazeGrid m = new MazeGrid(3,3,new List<GameObject>());
+        MazeGrid m = new MazeGrid(3,3);
         m.InitialiseMaze();
         m.GetMazeCell(0,0).FrontWall = false;
         m.GetMazeCell(2,2).BackWall = false;
@@ -218,9 +278,9 @@ class Program {
         //Console.WriteLine(m.PrintConnectedNeighbours());
         //Console.WriteLine(m.MazePrint());
 
-        GameObject[] objects = {new GameObject(0,0,"One",'1',true,true),new GameObject(1,0,"Two",'2',true,true),new GameObject(2,0,"Three",'3',true,true),
-        new GameObject(0,1,"Four",'4',true,true),new GameObject(1,1,"Five",'5',true,true),new GameObject(2,1,"Six",'6',true,true),
-        new GameObject(0,2,"Seven",'7',true,true),new GameObject(1,2,"Eight",'8',true,true),new GameObject(2,2,"Nine",'9',true,true)};
+        GameObject[] objects = {new GameObject(0,0,"One",'1',true),new GameObject(1,0,"Two",'2',true),new GameObject(2,0,"Three",'3',true),
+        new GameObject(0,1,"Four",'4',true),new GameObject(1,1,"Five",'5',true),new GameObject(2,1,"Six",'6',true),
+        new GameObject(0,2,"Seven",'7',true),new GameObject(1,2,"Eight",'8',true),new GameObject(2,2,"Nine",'9',true)};
 
         string mazePrint = m.MazeNoNumPrint();
         char[] cells = mazePrint.ToCharArray();
@@ -239,7 +299,7 @@ class Program {
         Console.WriteLine(newPrint);
     }
     static void testMazeGridAndDijkstra() {
-        MazeGrid mazeBoard = new MazeGrid(5, 5,new List<GameObject>());
+        MazeGrid mazeBoard = new MazeGrid(5, 5);
         mazeBoard.InitialiseMaze();
         mazeBoard.GetMazeCell(0, 0).FrontWall = false;
         mazeBoard.GetMazeCell(4, 4).BackWall = false;
@@ -374,7 +434,7 @@ class Program {
     }
     static MazeGrid testCreateRandomDFSMaze(int width,int height){
         Console.WriteLine("Class Pathfinder test using random maze and graph structure");
-        MazeGrid mazeBoard2 = new MazeGrid(width,height,new List<GameObject>());
+        MazeGrid mazeBoard2 = new MazeGrid(width,height);
         mazeBoard2.InitialiseMaze();
         mazeBoard2.CreateDFSMaze();
         Console.WriteLine(mazeBoard2.MazePrint());
@@ -382,7 +442,7 @@ class Program {
     }
     static MazeGrid testCreateRandomPrimsMaze(int width,int height){
         Console.WriteLine("Class Pathfinder test using random maze and graph structure");
-        MazeGrid mazeBoard = new MazeGrid(width,height,new List<GameObject>());
+        MazeGrid mazeBoard = new MazeGrid(width,height);
         mazeBoard.InitialiseMaze();
         mazeBoard.CreatePrimsMaze();
         Console.WriteLine(mazeBoard.MazePrint());
@@ -398,9 +458,9 @@ class Program {
     }
     static void testGameObject(){
         // Create some GameObject instances
-        GameObject wall = new GameObject(0, 0, "Wall",'W', false, false);
-        GameObject box = new GameObject(1, 2, "Box",'B', true, true);
-        GameObject key = new GameObject(2, 3, "Key",'K', true, false);
+        GameObject wall = new GameObject(0, 0, "Wall",'W', false);
+        GameObject box = new GameObject(1, 2, "Box",'B', true);
+        GameObject key = new GameObject(2, 3, "Key",'K', false);
 
         // Test the ToString method
         Console.WriteLine(wall.ToString());
@@ -410,20 +470,11 @@ class Program {
         // Test getters and setters
         Console.WriteLine("\nTesting properties and methods:");
         Console.WriteLine($"Box Name: {box.GetName()}");
-        Console.WriteLine($"Is Box Movable? {box.IsMovable()}");
-
-        box.Movable(false);
-        Console.WriteLine($"Box Movable after update: {box.IsMovable()}");
-
-        Console.WriteLine($"Is Key Interacting? {key.IsInteracting()}");
-
-        key.Interaction(false);
-        Console.WriteLine($"Key Interacting after update: {key.IsInteracting()}");
     }
     static void testGameObjectAndCell(){
         // Create GameObject instances
-        GameObject treasure = new GameObject(2, 3, "Treasure",'T', false, false);
-        GameObject monster = new GameObject(1, 1, "Monster",'M', true, false);
+        GameObject treasure = new GameObject(2, 3, "Treasure",'T', false);
+        GameObject monster = new GameObject(1, 1, "Monster",'M', false);
 
         // Create Cell instances
         Cell cell1 = new Cell(0, 0);
@@ -467,7 +518,7 @@ class Program {
             int x = nodes[i+1].X();
 		    int y = nodes[i+1].Y(); 
 		    Cell nextCell = maze.GetMazeCell(x,y);
-            maze.AddGameObject(new GameObject(x,y,"Mark "+i,'#',false,false));
+            maze.AddGameObject(new GameObject(x,y,"Mark "+i,'#',false));
 		    //nextCell.SetGameObject(new GameObject(x,y,"Mark "+0,'#',false,false));
 		    int count = graph.GetDistanceBetweenNodes(nodes[i],nodes[i+1]);
 		    string direction = CompareCell(currentCell,nextCell);
@@ -487,7 +538,7 @@ class Program {
                 }
                 // Sets object marks
                 //nextCell = maze._mazeGrid[a,b];
-                maze.AddGameObject(new GameObject(a,b,"Mark "+i,'#',false,false));
+                maze.AddGameObject(new GameObject(a,b,"Mark "+i,'#',false));
                 //nextCell.SetGameObject(new GameObject(a,b,"Mark "+j,'#',false,false));
             }
 		    currentCell = maze.GetMazeCell(x,y);
@@ -538,48 +589,95 @@ class Program {
         Console.WriteLine($"Total nodes: {graph.GetNodes().Count}");
         Console.WriteLine($"Number of nodes traversed: {counter}");
     }
-    static (Cell,string) Input(MazeGrid gameBoard,Cell currentCell,Cell endCell){
+    static (Cell,string) Input(MazeGrid gameBoard,Cell currentCell,Cell endCell, Player player){
         System.ConsoleKeyInfo input = Console.ReadKey();
         Cell nextCell = currentCell;
         //Console.Clear();
         string message = "Not moved";
         if (input.Key == ConsoleKey.UpArrow){
-            Moving("UP");
+            Moving(player,0,-1);
         }else if (input.Key == ConsoleKey.DownArrow){
-            Moving("DOWN");
+            Moving(player,0,1);
         }else if (input.Key == ConsoleKey.LeftArrow){
-           Moving("LEFT");
+           Moving(player,-1,0);
         }else if (input.Key == ConsoleKey.RightArrow){
-            Moving("RIGHT");
+            Moving(player,1,0);
         }else if (input.Key == ConsoleKey.Escape){
             message = "PAUSE";
         }else if (input.Key == ConsoleKey.E){
             message = GameClear(currentCell);
-        }else if (input.Key == ConsoleKey.D){
-            if (currentCell.IsNode(gameBoard.Width(),gameBoard.Height())){
-                GameDijkstra(gameBoard,currentCell,endCell);
-                message = "Used Dijkstra to find path to Goal";
-            }else{
-                message = "Not a junction";
-            }
+        }else if (input.Key == ConsoleKey.X){
+            message ="Checking for interactions\n";
+            CheckInteractionForAllTypesOfGameObject();
+        }else if (input.Key == ConsoleKey.Tab){
+            Console.WriteLine(player.DisplayInventory());
+            Console.WriteLine("Press tab to exit, Number to chose the item to hold");
+            System.ConsoleKeyInfo ch = Console.ReadKey();
+            Console.WriteLine(player.CheckHold(ch.KeyChar));
+        }else if (input.Key==ConsoleKey.Spacebar){
+            Console.WriteLine("Using "+player.GetItemHeld());
+            UseItem();
             
         }
         return (nextCell,message);
-        /*
-        Console.WriteLine("Dijkstra's Algorithm Path:");
-        GameDijkstra(gameboard);
-        Console.Write("Enter to continue...");
-        Console.ReadKey();
-
-        Console.WriteLine("Breadth First Algorithm Path:");
-        GameBreadthFirst(gameboard);
-        Console.Write("Enter to continue...");
-        Console.ReadKey();
-        */
-        void Moving(string direction){
-            if (gameBoard.MoveValid(currentCell,direction)){
-                nextCell = gameBoard.Move(currentCell,direction);
-                message = "Moved "+direction;
+        void Moving(object control, int a,int b){
+            if (gameBoard.MoveValid(currentCell,a,b)){
+                if (control.GetType() == typeof(Player)){
+                    Player player = (Player)control;
+                    player.Move(currentCell.X()+a,currentCell.Y()+b);
+                    
+                }else if (control.GetType() == typeof(Mob)){
+                    Mob mob = (Mob)control;
+                    mob.Move(currentCell.X()+a,currentCell.Y()+b);
+                }else if (control.GetType()== typeof(GameObject)){
+                    GameObject obj = (GameObject)control;
+                    obj.Move(currentCell.X()+a,currentCell.Y()+b);
+                }
+                nextCell = gameBoard.GetMazeCell(currentCell.X()+a,currentCell.Y()+b);
+                message = "Moved to "+$"x:{nextCell.X()},y:{nextCell.Y()}";
+            }
+        }
+        void CheckInteractionForAllTypesOfGameObject(){
+            bool found = false;
+            int i = 0;
+            while (i<gameBoard.gameObjects.Count&&found==false){
+                if (gameBoard.gameObjects[i] is Tool){
+                    Tool obj = (Tool) gameBoard.gameObjects[i];
+                    if (obj.x==player.x&&obj.y==player.y){
+                        found = true;
+                        player.AddItem(obj);
+                        message+="Picking up "+obj.name;
+                    }
+                   
+                }else if (gameBoard.gameObjects[i] is Navigator){
+                    Navigator obj = (Navigator) gameBoard.gameObjects[i];
+                    if (obj.x==player.x&&obj.y==player.y){
+                        found = true;
+                        player.AddItem(obj);
+                        message+="Picking up "+obj.name;
+                    }
+                }else if (gameBoard.gameObjects[i] is Weapon){
+                    Weapon obj = (Weapon) gameBoard.gameObjects[i];
+                    if (obj.x==player.x&&obj.y==player.y){
+                        found = true;
+                        player.AddItem(obj);
+                        message+="Picking up "+obj.name;
+                    }
+                }
+                i++;
+            }
+        }
+        void UseItem(){
+            if (player.GetItemHeld() is Navigator){
+                Navigator n = (Navigator)player.GetInventory(0);
+                gameBoard.AddObjects(n.pathFinder.ReturnPath(player.x,player.y,n.x,n.y,n.GetDistance()));
+                //player.Remove(0);
+            }else if (player.GetItemHeld() is Tool){
+                Tool n = (Tool)player.GetInventory(0);
+                
+            }else if (player.GetItemHeld() is Food){
+                Food n = (Food)player.GetInventory(0);
+                player.AddHealth(n.GetHeal());
             }
         }
     }
