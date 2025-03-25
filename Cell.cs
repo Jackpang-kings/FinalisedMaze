@@ -11,17 +11,15 @@ namespace MazeGame{
 
         public List<Cell> neighbourCells;
         public List<Cell> connectedCells;
-        public GameObject gameObject;
         bool visited, goal;
     
-        public Cell(int X,int Y,bool go = false,GameObject g = null){
+        public Cell(int X,int Y,bool go = false){
             x = X;
             y = Y;
             goal = go;
             visited = false;
             neighbourCells = new List<Cell>();
             connectedCells = new List<Cell>();
-            gameObject = g;
         }
         public int X(){
             return x;
@@ -47,8 +45,8 @@ namespace MazeGame{
         public List<Cell> GetConnectedCells(){
             return connectedCells;
         }
-        public bool IsNode(int w,int h){
-            if((X()==0&&Y()==0)|(X()==w-1&&Y()==h-1)){
+        public bool IsNode(){
+            if((x==0&&y==0)|(goal)){
                 return true;
             }else if (FrontWall&&BackWall&&!RightWall&&!LeftWall){
                 return false;
@@ -57,12 +55,6 @@ namespace MazeGame{
             }else{
                 return true;
             }
-        }
-        public void SetGameObject(GameObject g){
-            gameObject = g;
-        }       
-        public GameObject GetGameObject(){
-            return gameObject;
         }
         
         public override string ToString()
@@ -76,9 +68,6 @@ namespace MazeGame{
             message += $"backWall: "+BackWall.ToString()+"\n";
             message += $"visited: "+visited.ToString()+"\n";
             message += "goal: "+goal.ToString()+"\n";
-            if (gameObject!=null){
-                message += $"{gameObject.ToString()}";
-            }
             return message;
         }
     }

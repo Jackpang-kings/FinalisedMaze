@@ -1,6 +1,7 @@
 using System;
 using System.Diagnostics;
 using System.Globalization;
+using System.Reflection.Emit;
 using Microsoft.CSharp;
 namespace MazeGame{
     class PathFinder {
@@ -14,8 +15,8 @@ namespace MazeGame{
             int nodecounter = 0;
             for(int i = 0;i<_maze.Width();i++){
                 for(int j = 0;j<_maze.Height();j++){
-                    Cell c = _maze._mazeGrid[i,j];
-                    if (c.IsNode(_maze.Width(),_maze.Height())){
+                    Cell c = _maze.GetMazeCell(i,j);
+                    if (c.IsNode()){
                         Node newNode = new Node(nodecounter, c.X(), c.Y(),new List<Edge>());
                         nodecounter++;
                         graph.AddNode(newNode);
@@ -26,9 +27,8 @@ namespace MazeGame{
             LinkNodeRelationships();
         }
         public void LinkNodeRelationships(){
-            _maze.SetAllCellNotVisited();
             foreach (Cell c in _maze._mazeGrid){
-                if (c.IsNode(_maze.Width(),_maze.Height())){
+                if (c.IsNode()){
                     CheckNodesRelationship(c);
                 }
             }
@@ -42,7 +42,7 @@ namespace MazeGame{
             if (!c.LeftWall){
                 while(!found&&x>=1){
                     x--;
-                    if (_maze._mazeGrid[x,c.Y()].IsNode(_maze.Width(),_maze.Height())&&_maze._mazeGrid[x,c.Y()]!=c){
+                    if (_maze.GetMazeCell(x,c.Y()).IsNode()&&_maze.GetMazeCell(x,c.Y())!=c){
                         prevNode = cellNodeMap[_maze._mazeGrid[x,c.Y()]];
                         SetGraphRelationship(newNode,prevNode);
                         found=true;
@@ -54,7 +54,7 @@ namespace MazeGame{
             if (!c.RightWall){
                 while(!found&&x<_maze.Width()-1){
                     x++;
-                    if (_maze._mazeGrid[x,c.Y()].IsNode(_maze.Width(),_maze.Height())&&_maze._mazeGrid[x,c.Y()]!=c){
+                    if (_maze.GetMazeCell(x,c.Y()).IsNode()&&_maze.GetMazeCell(x,c.Y())!=c){
                         prevNode = cellNodeMap[_maze._mazeGrid[x,c.Y()]];
                         SetGraphRelationship(newNode,prevNode);
                         found=true;
@@ -65,7 +65,7 @@ namespace MazeGame{
             if (!c.FrontWall){
                 while(!found&&y>=1){
                     y--;
-                    if (_maze._mazeGrid[c.X(),y].IsNode(_maze.Width(),_maze.Height())&&_maze._mazeGrid[c.X(),y]!=c){
+                    if (_maze.GetMazeCell(c.X(),y).IsNode()&&_maze.GetMazeCell(c.X(),y)!=c){
                         prevNode = cellNodeMap[_maze._mazeGrid[c.X(),y]];
                         SetGraphRelationship(newNode,prevNode);
                         found=true;
@@ -77,7 +77,7 @@ namespace MazeGame{
             if (!c.BackWall){
                 while(!found&&y<_maze.Height()-1){
                     y++;
-                    if (_maze._mazeGrid[c.X(),y].IsNode(_maze.Width(),_maze.Height())&&_maze._mazeGrid[c.X(),y]!=c){
+                    if (_maze.GetMazeCell(c.X(),y).IsNode()&&_maze.GetMazeCell(c.X(),y)!=c){
                         prevNode = cellNodeMap[_maze._mazeGrid[c.X(),y]];
                         SetGraphRelationship(newNode,prevNode);
                         found=true;
@@ -94,30 +94,17 @@ namespace MazeGame{
             if (cellNodeMap.ContainsKey(c)){
                 return cellNodeMap[c];
             }else{
-                return null;
+                return null!;
             }
         }
-        public string PrintCellFrontWall(Cell[] cells){
-        string message = "";
-        foreach (Cell cell in cells){
-            if (cell.FrontWall){
-            message += "+---+";
-            }else{
-            message += "+   +";
-            }
-        }
-        message +="\n";
-        return message;
-    }
-        public List<object> ReturnPath(int startX, int startY, int endX, int endY, int d){
+        public List<object> ReturnPath(int startX, int startY, int endX, int endY, int d,char label){
             // Step 1: Declare variables
             Cell currCell = _maze.GetMazeCell(startX,startY);
-            MazeGrid maze = _maze;
             List<object> list = new List<object>();
 
             // Step 2: Perform Dijkstra's Algorithm between two nodes
-            Node startNode = Cell2Node(maze.GetMazeCell(startX,startY));  // Starting cell
-            Node endNode = Cell2Node(maze.GetMazeCell(endX,endY));    // Goal cell
+            Node startNode = Cell2Node(_maze.GetMazeCell(startX,startY));  // Starting cell
+            Node endNode = Cell2Node(_maze.GetMazeCell(endX,endY));    // Goal cell
             var solution = graph.DijkstraAlgorithm(startNode,endNode);
 
             // Step 3: Output the solution
@@ -126,36 +113,50 @@ namespace MazeGame{
                 int nx = nodes[i+1].X();
                 int ny = nodes[i+1].Y(); 
                 Cell nextCell = _maze.GetMazeCell(nx,ny);
-                list.Add(new GameObject(nx,ny,"Mark "+i,'#',false));
+                list.Add(new GameObject(startX,startY,"Mark "+i,label,false));
                 //nextCell.SetGameObject(new GameObject(x,y,"Mark "+0,'#',false,false));
                 int count = graph.GetDistanceBetweenNodes(nodes[i],nodes[i+1]);
             
             // Repeat n times in specific direction by comparing two nodes
                 for(int j = 1; j < count;j++){
-                    int a = startY;
+                    int a = startX;
                     int b = startY;
-                    if (nextCell.X() > currCell.X()){
+                    if (currCell.X()>nextCell.X()){
                         a = startX-j;
-                    }else if (nextCell.X() < currCell.X()){
-                        a = startY+j;
-                    }else if (nextCell.Y() > currCell.Y()){
-                        b = startX-j;
-                    }else if (nextCell.Y() < currCell.Y()){
+                    }else if (currCell.X()<nextCell.X()){
+                        a = startX+j;
+                    }else if (currCell.Y()>nextCell.Y()){
+                        b = startY-j;
+                    }else if (currCell.Y()<nextCell.Y()){
                         b=startY+j;
                     }
                     // Sets object marks
-                    //nextCell = maze._mazeGrid[a,b];
-                    list.Add(new GameObject(a,b,"Mark "+i,'#',false));
-                    //nextCell.SetGameObject(new GameObject(a,b,"Mark "+j,'#',false,false));
+                    //nextCell = _maze._mazeGrid[a,b];
+                    list.Add(new GameObject(a,b,"Mark "+i,label,false));
                 }
-                currCell = maze.GetMazeCell(startX,startY);
+                currCell = nextCell;
+                startX = nx;
+                startY = ny;
             }
-            if (list.Count<d){
+            list.Add(new GameObject(endX,endY,"Last Mark",label,false));
+            if (list.Count<d|d==int.MaxValue){
                 return list;
             }else{
                 return list.GetRange(0,d);
             }   
             }
+        public string PrintCellFrontWall(Cell[] cells){
+            string message = "";
+            foreach (Cell cell in cells){
+                if (cell.FrontWall){
+                message += "+---+";
+                }else{
+                message += "+   +";
+                }
+            }
+            message +="\n";
+            return message;
+        }
         public string PrintCellLeftRightWall(Cell[] cells,List<Node> solution){ 
             string message = "";
             foreach (Cell cell in cells){
@@ -164,7 +165,7 @@ namespace MazeGame{
                 }else{
                     message += "  ";
                 }
-                if (cell.IsNode(_maze.Width(),_maze.Height())){
+                if (cell.IsNode()){
                     if (solution.Contains(cellNodeMap[cell])){
                         message += "#";
                     }else{

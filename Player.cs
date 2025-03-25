@@ -15,7 +15,7 @@ namespace MazeGame{
             name = "Player";
             health = 10;
             attack = 1;
-            itemHeld = null;
+            itemHeld = null!;
             inventory = new List<object>();
         }
         public Player(int a,int b,string n, int size){
@@ -24,14 +24,14 @@ namespace MazeGame{
             name = n;
             health = 5;
             label = '8';
-            itemHeld = null;
+            itemHeld = null!;
             inventory = new List<object>();
         }
         public object GetInventory(int a){
             if (a<inventory.Count&&a>=0){
                 return inventory[a--];
             }
-            return null;
+            return null!;
         }
         public void AddItem(object i){
             inventory.Add(i);
@@ -43,7 +43,7 @@ namespace MazeGame{
             if (itemHeld!=null){
                 return itemHeld;
             }
-            return null;
+            return null!;
         }
         public void Hold(int i){
             itemHeld = GetInventory(i);
@@ -79,8 +79,7 @@ namespace MazeGame{
             }
             return message;
         }
-        public string CheckHold(char choice){
-            int i = (int)choice;
+        public string CheckHold(int i){
             i--;
             if (i>=0&&i<inventory.Count){
                 Hold(i);

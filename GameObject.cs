@@ -22,6 +22,12 @@ namespace MazeGame{
             name = n;
             label = t;
         }
+        public int X(){
+            return x;
+        }
+        public int Y(){
+            return y;
+        }
         public string GetName(){
             return name;
         }
@@ -67,17 +73,6 @@ namespace MazeGame{
         protected bool following;
         protected List<object> objectToFollow;
         public PathFinder pathFinder;
-        public Mob(){
-            x = 0;
-            y = 0;
-            name = "Mob";
-            health = 10;
-            damage = 0;
-            range = 0;
-            pathFinder = null;
-            following = false;
-            objectToFollow = new List<object>();
-        }
         public Mob(int a,int b,string n,int c, int d, int h,PathFinder p){
             x = a;
             y = b;
@@ -88,11 +83,25 @@ namespace MazeGame{
             label = 'M';
             pathFinder = p;
             following = false;
-            objectToFollow = null;
+            objectToFollow = new List<object>();
         }
         public bool GetFollowing(){
             return following;
         }
+        public List<object> GetobjectsToFollow(){
+            return objectToFollow;
+        }
+        public GameObject PopObjToFollow(){
+            if (objectToFollow.Count>0){
+                GameObject obj = (GameObject)objectToFollow[0];
+                objectToFollow.RemoveAt(0);
+                return obj;
+            }
+            return null!;
+        }
+        public void SetObjectToFollow(List<object> objs){
+            objectToFollow = objs;
+        }       
         public void Tick(Cell currentCell){
             CheckIfPlayerIsWithinRange(currentCell);
             if (objectToFollow!=null&&following==true){
@@ -102,10 +111,11 @@ namespace MazeGame{
                     y = holder.y;
                     objectToFollow.RemoveAt(0);
                 }catch{
-                    objectToFollow = pathFinder.ReturnPath(x,y,currentCell.X(),currentCell.Y(),range);
+                    objectToFollow = pathFinder.ReturnPath(x,y,currentCell.X(),currentCell.Y(),range,'#');
                 }           
             }else{
-                Patrol(pathFinder._maze.GetMazeCell(x,y));
+                Cell nextCell = pathFinder._maze.NeighbourCell(pathFinder._maze.GetMazeCell(x,y).connectedCells,false);
+                Move(nextCell.X(),nextCell.Y());
             }
         }
         public void CheckIfPlayerIsWithinRange(Cell c){
@@ -115,15 +125,11 @@ namespace MazeGame{
             if (startNode==null|endNode==null){
                 following = false;
             }else{
-                var solution = pathFinder.graph.DijkstraAlgorithm(startNode,endNode);
-                if (solution.Item2[endNode.getNodeID()]<=range){
+                var solution = pathFinder.graph.DijkstraAlgorithm(startNode!,endNode!);
+                if (solution.Item2[endNode!.getNodeID()]<=range){
                     following = true;
                 }
             }
-        }
-        public void Patrol(Cell c){
-            Cell nextCell = pathFinder._maze.NeighbourCell(c.connectedCells,false);
-            Move(nextCell.X(),nextCell.Y());
         }
     }
     class Tool:GameObject {

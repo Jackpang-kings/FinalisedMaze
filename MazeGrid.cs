@@ -14,8 +14,16 @@ namespace MazeGame{
         height = h;
         _mazeGrid = new Cell[width,height];
         gameObjects = new List<object>();
-        endX = PickRandomNum((w-1)/3*2,(w-1)/3*2);
-        endY = PickRandomNum((h-1)/3*2,(h-1)/3*2);
+        endX = PickRandomNum(w/3*2,w-1);
+        endY = PickRandomNum(h/3*2,h-1);
+    }
+    public MazeGrid(int w,int h,Cell[,] cells,int a,int b){
+        width = w;
+        height = h;
+        _mazeGrid = cells;
+        endX =a; 
+        endY =b;
+        gameObjects = new List<object>();
     }
     public MazeGrid(int w,int h,List<object> d){
         width = w;
@@ -28,6 +36,12 @@ namespace MazeGame{
     }
     public int GetEndY(){
         return endY;
+    }
+    public void SetEndX(int a){
+        endX = a;
+    }
+    public void SetEndY(int b){
+        endX = b;
     }
     public Cell[] GetMazeRows(int j){
         Cell[] rowOfCells = new Cell[width];
@@ -161,7 +175,7 @@ namespace MazeGame{
         List<Cell> adjCell = RetrieveAdjacentCells(cells,visited);
         // Pick random cell from adjCell
         if (adjCell.Count==0){
-            return null;
+            return null!;
         }
         Cell c = PickAndRemoveCellinList(adjCell);
         return c;
@@ -211,13 +225,15 @@ namespace MazeGame{
     }
     public void CreateDFSMaze(){
         GetMazeCell(endX,endY).Goal(true);
-        DFSGenerateMaze(null,GetMazeCell(PickRandomNum(width)/2,PickRandomNum(height)/2));
+        AddObject(new GameObject(endX,endY,"Goal Indicator", 'G',false));
+        DFSGenerateMaze(null!,GetMazeCell(PickRandomNum(width-1),PickRandomNum(height-1)));
         SetAllCellNotVisited();
         SetConnectedCells();
     }
     public void CreatePrimsMaze(){
         GetMazeCell(endX,endY).Goal(true);
-        PrimsMaze(GetMazeCell(PickRandomNum(width)/2,PickRandomNum(height)/2));
+        AddObject(new GameObject(endX,endY,"Goal Indicator", 'G',false));
+        PrimsMaze(GetMazeCell(PickRandomNum(width-1)/2,PickRandomNum(height-1)));
         SetAllCellNotVisited();
         SetConnectedCells();
     }
@@ -265,11 +281,6 @@ namespace MazeGame{
                 message += "| ";
             }else{
                 message += "  ";
-            }
-            if (cell.gameObject!=null){
-                message += $"{cell.gameObject.GetLabel()}";
-            }else{
-                message += $" ";
             }
             if (cell.RightWall){
                 message += " |";
@@ -424,9 +435,6 @@ namespace MazeGame{
         }
         return newPrint;
     } 
-    public void AddGameObject(GameObject g){
-        gameObjects.Add(g);
-    }
     public void AddObject(object obj){
         gameObjects.Add(obj);
     }
@@ -437,12 +445,10 @@ namespace MazeGame{
     }
     public int CheckNumOfNodes(){
         int size = 0;
-        int w = Width();
-        int h = Height();
         foreach(Cell cell in _mazeGrid){
             if (cell != null){
                 //check if its a junction or a turning point or a dead end or a starting point or a end point
-                if (cell.IsNode(w,h)) {
+                if (cell.IsNode()) {
                     size++;
                 }
             }
