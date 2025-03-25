@@ -237,6 +237,11 @@ namespace MazeGame{
         SetAllCellNotVisited();
         SetConnectedCells();
     }
+    public void RemoveHints(){
+        for (int i = gameObjects.Count-1;i>1;i--){
+            gameObjects.RemoveAt(i);
+        }
+    }
     public string MazePrint() {
         string mazeprintmessage ="   ";
         for (int i = 0;i<Width();i++){

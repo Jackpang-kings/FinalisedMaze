@@ -16,7 +16,7 @@ class Program {
                 break;
             }
             case "G":{
-                GameMode();
+                GameDifficulty();
                 break;
             }
             case "Q":{
@@ -24,15 +24,41 @@ class Program {
             }
         }
     }
-    static void GameMode(){
-        string ch = "S";
-        if (ch.ToUpper() == "S"){
-            GameDifficulty("S");
-        }else{
-            GameDifficulty("C");
-        }
-    }
-    static void SpeedGame(int i,int j,string t, int playerview, double interval){
+    static void GameDifficulty() {
+        bool valid = true;
+        do {
+            string debugMessage = "conversion";
+            int difficulty = 0;
+            Console.WriteLine("Which difficulty? \n1) Beginner 2) Easy 3) Medium 4) Hard");
+            Console.Write("Difficulty: ");
+            string ch = Console.ReadLine()!.ToUpper();
+            int.TryParse(ch, out difficulty);
+            if (difficulty==0) {
+                debugMessage = "level";
+            }
+            if (difficulty == 1){
+                Console.WriteLine("You chose Beginner level");
+                SpeedGame(12,12,"D",3,2000);
+                valid = true;
+            }else if (difficulty == 2){
+                Console.WriteLine("You chose Easy level");
+                SpeedGame(12,12,"P",3,1500);
+                valid = true;
+            }else if (difficulty == 3){
+                Console.WriteLine("You chose Medium level");
+                SpeedGame(30,30,"D",2,1000);
+                valid = true;
+            }else if (difficulty == 4){
+                Console.WriteLine("You chose Hard level");
+                SpeedGame(30,30,"P",2,1000);
+                valid = true;
+            }else{
+                valid = false;
+                Console.WriteLine("Invalid "+debugMessage);
+            }
+        }while(valid==false);
+    } 
+    static void SpeedGame(int i,int j,string t, int radius, double interval){
         System.Timers.Timer timer= new System.Timers.Timer(interval);
         MazeGrid gameboard = new MazeGrid(i,j);
         gameboard.SetEndX(i-1); 
@@ -68,14 +94,11 @@ class Program {
         
         // Create player object and navigator object
         Player player = new Player(startx,starty,"Player1",7); 
-        Navigator compass= new Navigator(startx,starty,"Compass",new PathFinder(gameboard,new Graph(new List<Node>())),5);
 
         // Create mob object
         PathFinder pathFinder = new PathFinder(roboard,new Graph()); // Assuming PathFinder has a constructor that takes a MazeGrid
         Mob robot = new Mob(startx,starty, "Robot", 1, 3, 10, pathFinder); // Mob starts at (0,0)
 
-        // Add navigator to player inventory
-        player.AddItem(compass); 
 
         // Add objects into both maze
         gameboard.AddObject(player);
@@ -84,8 +107,7 @@ class Program {
         // Get startCell and endCell
         Cell startCell = gameboard.GetMazeCell(startx,starty);
         Cell endCell = gameboard.GetMazeCell(gameboard.GetEndX(),gameboard.GetEndY());
-        Cell nextCell;
-        int radius = playerview;
+        Cell currentCell = startCell;
 
         // Get roboard startCell and endCell
         Cell robotStartCell = roboard.GetMazeCell(startx,starty);
@@ -103,15 +125,36 @@ class Program {
         string message = "not moved";
         bool win = false;
         // Starts the user input
-        Console.WriteLine("Arrow keys to move, E) Check if you are at goal D) To find path to goal\n\nTab) To open Inventory Spacebar) To use item holding X) To check for interactions");
+        Console.WriteLine("The goal of this game is to reach G");
+        Console.WriteLine("Read maze from "+Environment.CurrentDirectory+"/game.txt");
+        Console.WriteLine("Read robot maze from "+Environment.CurrentDirectory+"/speedGame.txt");
         while (message!="PAUSE"&&message!="CLEAR"){
             // Instructions for inputs
-            (nextCell,message) = Input(gameboard,startCell,endCell,player);
-            //Console.Clear();
-            startCell = nextCell;
-            OutputTextFile(gameboard.PrintCameraAngle(startCell,radius),"game.txt");
-            //Console.WriteLine(gameboard.PrintAddGameObjects(gameboard,gameboard.MazeNoNumPrint()));
-            //Console.WriteLine(message);
+            gameboard.RemoveHints();
+            Console.WriteLine("Arrow keys to move, E) Check if you are at goal D) To find path to goal");
+            System.ConsoleKey input = Console.ReadKey().Key;  
+            if (input == ConsoleKey.UpArrow&&gameboard.MoveValid(currentCell,0,-1)){
+                Moving(player,0,-1);
+            }else if (input == ConsoleKey.DownArrow&&gameboard.MoveValid(currentCell,0,1)){
+                Moving(player,0,1);
+            }else if (input == ConsoleKey.LeftArrow&&gameboard.MoveValid(currentCell,-1,0)){
+                Moving(player,-1,0);
+            }else if (input == ConsoleKey.RightArrow&&gameboard.MoveValid(currentCell,1,0)){
+                Moving(player,1,0);
+            }else if (input == ConsoleKey.Escape){
+                message = "PAUSE";
+            }else if (input == ConsoleKey.E){
+                message = GameClear(currentCell);
+            }else if (input == ConsoleKey.D){
+                if (pathFinder.Cell2Node(currentCell)==null){
+                    message = "Not a junction";
+                }else{
+                    List<object> objs =pathFinder.ReturnPath(currentCell.X(),currentCell.Y(),gameboard.GetEndX(),gameboard.GetEndY(),radius+1,'#');
+                    gameboard.AddObjects(objs);
+                } 
+            }
+            Console.Clear();
+            OutputTextFile(gameboard.PrintCameraAngle(currentCell,radius),"game.txt");
             if (GameClear(gameboard.GetMazeCell(player.X(),player.Y()))=="CLEAR"){
                 message = "CLEAR";
                 win = true;
@@ -119,20 +162,30 @@ class Program {
             if (GameClear(roboard.GetMazeCell(robot.X(),robot.Y()))=="CLEAR"){
                 message = "CLEAR";
             }
+            Console.WriteLine(message);
         }
         timer.Stop();
         DateTime endTime = DateTime.Now;
-
-    
         Console.WriteLine(DifferenceBetweenTwoTime(startTime,endTime)+" minutes");
         if (win){
             Console.WriteLine("You Won");
         }else{
             Console.WriteLine("Lost");
         }
-
-        Console.ReadKey();
+        void Moving(Player control, int a,int b){
+            Player player = (Player)control;
+            player.Move(currentCell.X()+a,currentCell.Y()+b);
+            currentCell = gameboard.GetMazeCell(currentCell.X()+a,currentCell.Y()+b);
+            message = "Moved to "+$"x:{currentCell.X()},y:{currentCell.Y()}";
+        }
     } 
+    static string GameClear(Cell c){
+        if (c.IsGoal()){
+            return "CLEAR";
+        }else{
+            return "Not there yet";
+        }
+    }
     static string DifferenceBetweenTwoTime(DateTime s,DateTime e){ //returns the time taken to solve the maze in minutes
         TimeSpan timeDiff = e.TimeOfDay - s.TimeOfDay;
         double d = timeDiff.TotalSeconds;
@@ -146,117 +199,6 @@ class Program {
             OutputTextFile(roboard.PrintCameraAngle(robotCurrentCell,radius),"speedGame.txt");
         }
     }
-    static void ClassicGame(int i,int j,string t, int playerview,List<object> gameObjects) {
-        MazeGrid gameboard = new MazeGrid(i,j);
-        // Initialising cells in the maze
-        int goalx = gameboard.GetEndX();
-        int goaly = gameboard.GetEndY();
-        gameboard.InitialiseMaze();
-        if (t=="P"){
-            // Generating maze with Prim's Algorithm
-            gameboard.CreatePrimsMaze();
-            Console.WriteLine("Generated maze using Prim's Algorithm");
-        }else{
-            // Generating maze with depth-first search
-            gameboard.CreateDFSMaze();
-            Console.WriteLine("Generated maze using Depth-first traversal");
-        }
-        if (i<31){
-                Console.WriteLine($"{gameboard.MazeNoNumPrint()}");
-        }else{
-            Console.WriteLine("Too wide to print the whole maze");
-        }
-        
-        Console.WriteLine("Read Entire maze from "+Environment.CurrentDirectory+"/game.txt");
-        // Output gameTextfile.txt
-        OutputTextFile(gameboard.MazeNoNumPrint(),"game.txt");
-
-
-        // Starting pos
-        int startx = gameboard.PickRandomNum((i-1)/3);
-        int starty = gameboard.PickRandomNum((j-1)/3);
-        // Move GameObject in maze
-        Player player = new Player(startx,starty,"Player1",7); 
-        GameObject box = new GameObject(1, 2, "Box",'B', false);
-        GameObject key = new GameObject(2, 3, "Key",'K', false);
-        Navigator compass= new Navigator(0,1,"Compass",new PathFinder(gameboard,new Graph(new List<Node>())),5);
-        PathFinder pathFinder = new PathFinder(gameboard,new Graph()); // Assuming PathFinder has a constructor that takes a MazeGrid
-        Mob mob = new Mob(5, 5, "Mob", 1, 3, 10, pathFinder); // Mob starts at (5,5)
-        string message = "not moved";
-        Cell startCell = gameboard.GetMazeCell(startx,starty);
-
-        // Place the GameObject in (0,0)
-        //startCell.SetGameObject(player);
-        gameboard.AddObject(player);
-        gameboard.AddObjects(new List<object> {compass,box,key,mob});
-        Cell endCell = gameboard.GetMazeCell(gameboard.GetEndX(),gameboard.GetEndY());
-
-        Cell nextCell;
-        int radius = playerview;
-        
-        while (message!="PAUSE"&&message!="CLEAR"){
-            // Instructions for inputs
-            Console.WriteLine("Arrow keys to move, E) Check if you are at goal D) To find path to goal\n\nTab) To open Inventory Spacebar) To use item holding X) To check for interactions");
-            (nextCell,message) = Input(gameboard,startCell,endCell,player);
-            Console.Clear();
-            startCell = nextCell;
-            mob.Tick(startCell);
-            Console.WriteLine(gameboard.PrintCameraAngle(startCell,radius));
-            //Console.WriteLine(gameboard.PrintAddGameObjects(gameboard,gameboard.MazeNoNumPrint()));
-            Console.WriteLine(message);
-        }
-        Console.ReadKey();
-    }
-    static void GameDifficulty(string mode) {
-        bool valid = true;
-        do {
-            string debugMessage = "conversion";
-            int difficulty = 0;
-            Console.WriteLine("Which difficulty? \n1) Beginner 2) Easy 3) Medium 4) Hard");
-            Console.Write("Difficulty: ");
-            string ch = Console.ReadLine()!.ToUpper();
-            int.TryParse(ch, out difficulty);
-            if (difficulty==0) {
-                debugMessage = "level";
-            }
-            if (difficulty == 1){
-                Console.WriteLine("You chose Beginner level");
-                if (mode=="C"){
-                    ClassicGame(12,12,"D",5,null!);
-                }else{
-                    SpeedGame(12,12,"D",3,2000);
-                }
-                valid = true;
-            }else if (difficulty == 2){
-                Console.WriteLine("You chose Easy level");
-                if (mode=="C"){
-                    ClassicGame(12,12,"D",4,null!);
-                }else{
-                    SpeedGame(12,12,"P",3,1500);
-                }
-                valid = true;
-            }else if (difficulty == 3){
-                Console.WriteLine("You chose Medium level");
-                if (mode=="C"){
-                    ClassicGame(21,21,"P",3,null!);
-                }else{
-                    SpeedGame(30,30,"D",2,1000);
-                }
-                valid = true;
-            }else if (difficulty == 4){
-                Console.WriteLine("You chose Hard level");
-                if (mode=="C"){
-                    ClassicGame(30,30,"P",2,null!);
-                }else{
-                    SpeedGame(30,30,"P",2,500);
-                }
-                valid = true;
-            }else{
-                valid = false;
-                Console.WriteLine("Invalid "+debugMessage);
-            }
-        }while(valid==false);
-    } 
     static void OutputTextFile(string print,string file){
         string path = Environment.CurrentDirectory+"/"+file;
         //Console.WriteLine(path);
@@ -709,107 +651,6 @@ class Program {
         Console.WriteLine($"Total nodes: {graph.GetNodes().Count}");
         Console.WriteLine($"Number of nodes traversed: {counter}");
     }
-    static (Cell,string) Input(MazeGrid gameBoard,Cell currentCell,Cell endCell, Player player){
-        System.ConsoleKey input = Console.ReadKey().Key;  
-        Cell nextCell = currentCell;
-        //Console.Clear();
-        string message = "Not moved";
-        if (input == ConsoleKey.UpArrow){
-            Moving(player,0,-1);
-        }else if (input == ConsoleKey.DownArrow){
-            Moving(player,0,1);
-        }else if (input == ConsoleKey.LeftArrow){
-           Moving(player,-1,0);
-        }else if (input == ConsoleKey.RightArrow){
-            Moving(player,1,0);
-        }else if (input == ConsoleKey.Escape){
-            message = "PAUSE";
-        }else if (input == ConsoleKey.E){
-            message = GameClear(currentCell);
-        }else if (input == ConsoleKey.X){
-            message ="Checking for interactions\n";
-            CheckInteractionForAllTypesOfGameObject();
-        }else if (input == ConsoleKey.Tab){
-            Console.WriteLine(player.DisplayInventory());
-            Console.WriteLine("Press tab to exit, Number to chose the item to hold");
-            int.TryParse(Console.ReadLine(),out int result);
-            if (result >=0){
-                Console.WriteLine($"\n{player.CheckHold(result)}");
-            }
-            
-        }else if (input==ConsoleKey.Spacebar){
-            Console.WriteLine("Using "+player.GetItemHeld());
-            UseItem();
-            
-        }
-        return (nextCell,message);
-        void Moving(object control, int a,int b){
-            if (gameBoard.MoveValid(currentCell,a,b)){
-                if (control.GetType() == typeof(Player)){
-                    Player player = (Player)control;
-                    player.Move(currentCell.X()+a,currentCell.Y()+b);
-                    
-                }else if (control.GetType() == typeof(Mob)){
-                    Mob mob = (Mob)control;
-                    mob.Move(currentCell.X()+a,currentCell.Y()+b);
-                }else if (control.GetType()== typeof(GameObject)){
-                    GameObject obj = (GameObject)control;
-                    obj.Move(currentCell.X()+a,currentCell.Y()+b);
-                }
-                nextCell = gameBoard.GetMazeCell(currentCell.X()+a,currentCell.Y()+b);
-                message = "Moved to "+$"x:{nextCell.X()},y:{nextCell.Y()}";
-            }
-        }
-        void CheckInteractionForAllTypesOfGameObject(){
-            bool found = false;
-            int i = 0;
-            while (i<gameBoard.gameObjects.Count&&found==false){
-                if (gameBoard.gameObjects[i] is Tool){
-                    Tool obj = (Tool) gameBoard.gameObjects[i];
-                    if (obj.x==player.x&&obj.y==player.y){
-                        found = true;
-                        player.AddItem(obj);
-                        message+="Picking up "+obj.name;
-                    }
-                   
-                }else if (gameBoard.gameObjects[i] is Navigator){
-                    Navigator obj = (Navigator) gameBoard.gameObjects[i];
-                    if (obj.x==player.x&&obj.y==player.y){
-                        found = true;
-                        player.AddItem(obj);
-                        message+="Picking up "+obj.name;
-                    }
-                }else if (gameBoard.gameObjects[i] is Weapon){
-                    Weapon obj = (Weapon) gameBoard.gameObjects[i];
-                    if (obj.x==player.x&&obj.y==player.y){
-                        found = true;
-                        player.AddItem(obj);
-                        message+="Picking up "+obj.name;
-                    }
-                }
-                i++;
-            }
-        }
-        void UseItem(){
-            if (player.GetItemHeld() is Navigator){
-                Navigator n = (Navigator)player.GetInventory(0);
-                gameBoard.AddObjects(n.pathFinder.ReturnPath(player.x,player.y,endCell.X(),endCell.Y(),n.GetDistance(),'#'));
-                //player.Remove(0);
-            }else if (player.GetItemHeld() is Tool){
-                Tool n = (Tool)player.GetInventory(0);
-                
-            }else if (player.GetItemHeld() is Food){
-                Food n = (Food)player.GetInventory(0);
-                player.AddHealth(n.GetHeal());
-            }
-        }
-    }
-    static string GameClear(Cell c){
-        if (c.IsGoal()){
-            return "CLEAR";
-        }else{
-            return "Not there yet";
-        }
-    }  
-    }
+
+}
 }
