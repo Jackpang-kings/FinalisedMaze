@@ -97,18 +97,21 @@ namespace MazeGame{
                 return null!;
             }
         }
-        public List<object> ReturnPath(int startX, int startY, int endX, int endY, int d,char label){
+        public List<object> ReturnPath(Cell currCell, Cell endCell, int d,char label){
             // Step 1: Declare variables
-            Cell currCell = _maze.GetMazeCell(startX,startY);
             List<object> list = new List<object>();
 
             // Step 2: Perform Dijkstra's Algorithm between two nodes
-            Node startNode = Cell2Node(_maze.GetMazeCell(startX,startY));  // Starting cell
-            Node endNode = Cell2Node(_maze.GetMazeCell(endX,endY));    // Goal cell
-            var solution = graph.DijkstraAlgorithm(startNode,endNode);
+            Node startNode = Cell2Node(currCell);  // Starting cell
+            Node endNode = Cell2Node(endCell);    // Goal cell
+            List<Node> solution = new List<Node>();
+            int[] distance;
+            (solution,distance) = graph.DijkstraAlgorithm(startNode,endNode);
 
+            int startX = currCell.X();
+            int startY = currCell.Y();
             // Step 3: Output the solution
-            List<Node> nodes = solution.Item1;
+            List<Node> nodes = solution;
             for (int i = 0; i < nodes.Count-1;i++){
                 int nx = nodes[i+1].X();
                 int ny = nodes[i+1].Y(); 
@@ -138,13 +141,13 @@ namespace MazeGame{
                 startX = nx;
                 startY = ny;
             }
-            list.Add(new GameObject(endX,endY,"Last Mark",label,false));
+            list.Add(new GameObject(endCell.X(),endCell.Y(),"Last Mark",label,false));
             if (list.Count<d|d==int.MaxValue){
                 return list;
             }else{
                 return list.GetRange(0,d);
             }   
-            }
+        }
         public string PrintCellFrontWall(Cell[] cells){
             string message = "";
             foreach (Cell cell in cells){

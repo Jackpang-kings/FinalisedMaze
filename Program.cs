@@ -7,20 +7,20 @@ namespace MazeGame {
 class Program { 
     static void Main() {
         string ch = "";
-        Console.WriteLine("T)test script G)Start Game Q)Quit");
-        //testScript();
-        ch = Console.ReadLine()!.ToUpper();
-        switch (ch) {
-            case "T":{
+        bool resume = true;
+        while(resume!=false){
+            Console.WriteLine("S)Test Script T)Start Game without robot G)Start Game Q)Quit");
+            //testScript();
+            ch = Console.ReadLine()!.ToUpper();
+            if (ch=="S"){
                 testScript();
-                break;
-            }
-            case "G":{
+            }else if (ch=="T"){
+                TestGame();
+            }else if (ch=="G"){
                 GameDifficulty();
-                break;
-            }
-            case "Q":{
-                break;
+            }else if (ch=="Q"){
+                Console.WriteLine("Shutting Game");
+                resume = false;
             }
         }
     }
@@ -58,11 +58,78 @@ class Program {
             }
         }while(valid==false);
     } 
+    static void TestGame(){
+        MazeGrid gameboard = new MazeGrid(9,9);
+        // Initialising cells in the maze
+        int goalx = gameboard.GetEndX();
+        int goaly = gameboard.GetEndY();
+        gameboard.InitialiseMaze();
+        gameboard.CreateDFSMaze();
+        int startx = 0;
+        int starty = 0;
+        // Create player object and navigator object
+        Player player = new Player(startx,starty,"Player1"); 
+        PathFinder pathFinder = new PathFinder(gameboard,new Graph()); // Assuming PathFinder has a constructor that takes a MazeGrid
+        gameboard.AddObject(player);
+        // Get startCell and endCell
+        Cell startCell = gameboard.GetMazeCell(startx,starty);
+        Cell endCell = gameboard.GetMazeCell(goalx,goaly);
+        Cell currentCell = startCell;
+
+        // Output the entire maze in game.txt
+        OutputTextFile(gameboard.MazePrintWithGmObj(gameboard),"game.txt");
+        Console.WriteLine("The goal of this game is to reach G\n");
+        Console.WriteLine("Read maze from "+Environment.CurrentDirectory+"/game.txt\n");
+
+        string message = "not moved";
+        int radius = 3;
+        bool win = false;
+        do{
+            // Instructions for inputs
+            gameboard.RemoveHints();
+            Console.WriteLine("Arrow keys to move, E) Check if you are at goal D) To find path to goal , Q)To close Game");
+            System.ConsoleKey input = Console.ReadKey().Key;  
+            if (input == ConsoleKey.UpArrow&&gameboard.MoveValid(currentCell,0,-1)){
+                Moving(0,-1);
+            }else if (input == ConsoleKey.DownArrow&&gameboard.MoveValid(currentCell,0,1)){
+                Moving(0,1);
+            }else if (input == ConsoleKey.LeftArrow&&gameboard.MoveValid(currentCell,-1,0)){
+                Moving(-1,0);
+            }else if (input == ConsoleKey.RightArrow&&gameboard.MoveValid(currentCell,1,0)){
+                Moving(1,0);
+            }else if (input == ConsoleKey.Q){
+                message = "PAUSE";
+            }else if (input == ConsoleKey.E){
+                message = GameClear(currentCell);
+                if (message=="CLEAR"){
+                    win = true;
+                }
+            }else if (input == ConsoleKey.D){
+                if (pathFinder.Cell2Node(currentCell)==null){
+                    message = "Not a junction";
+                }else{
+                    message = "Hints given";
+                    List<object> objs =pathFinder.ReturnPath(currentCell,endCell,radius+2,'#');
+                    gameboard.AddObjects(objs);
+                } 
+            }else{
+                message = "Not moved";
+            }
+            Console.Clear();
+            Console.WriteLine(message);
+            if (message!="PAUSE"){
+                OutputTextFile(gameboard.PrintCameraAngle(currentCell,radius),"game.txt");
+            }
+        }while (message!="PAUSE"&&win==false);
+        void Moving(int a,int b){
+            player.Move(currentCell.X()+a,currentCell.Y()+b);
+            currentCell = gameboard.GetMazeCell(currentCell.X()+a,currentCell.Y()+b);
+            message = "Moved to "+$"x:{currentCell.X()},y:{currentCell.Y()}";
+        }
+    }
     static void SpeedGame(int i,int j,string t, int radius, double interval){
         System.Timers.Timer timer= new System.Timers.Timer(interval);
         MazeGrid gameboard = new MazeGrid(i,j);
-        gameboard.SetEndX(i-1); 
-        gameboard.SetEndY(j-1); 
         // Initialising cells in the maze
         int goalx = gameboard.GetEndX();
         int goaly = gameboard.GetEndY();
@@ -76,13 +143,6 @@ class Program {
             gameboard.CreateDFSMaze();
             Console.WriteLine("Generated maze using Depth-first traversal");
         }
-        // Output gameTextfile.txt
-        //OutputTextFile(gameboard.MazeNoNumPrint(),"game.txt");
-        //Console.WriteLine("Read Entire maze from "+Environment.CurrentDirectory+"/game.txt");
-
-        
-        
-        //OutputTextFile(roboard.MazeNoNumPrint(),"speedGame.txt");
 
         // Starting pos
         int startx = 0;
@@ -93,7 +153,7 @@ class Program {
         roboard.AddObject(new GameObject(goalx,goaly,"Goal Indicator", 'G',false));
         
         // Create player object and navigator object
-        Player player = new Player(startx,starty,"Player1",7); 
+        Player player = new Player(startx,starty,"Player1"); 
 
         // Create mob object
         PathFinder pathFinder = new PathFinder(roboard,new Graph()); // Assuming PathFinder has a constructor that takes a MazeGrid
@@ -103,6 +163,10 @@ class Program {
         // Add objects into both maze
         gameboard.AddObject(player);
         roboard.AddObject(robot);
+        // Output the entire maze in speedGame.txt
+        OutputTextFile(roboard.MazePrintWithGmObj(roboard),"speedGame.txt");
+        // Output the entire maze in game.txt
+        OutputTextFile(gameboard.MazePrintWithGmObj(gameboard),"game.txt");
 
         // Get startCell and endCell
         Cell startCell = gameboard.GetMazeCell(startx,starty);
@@ -113,9 +177,15 @@ class Program {
         Cell robotStartCell = roboard.GetMazeCell(startx,starty);
         Cell robotEndCell = roboard.GetMazeCell(goalx,goaly);
         Cell robotCurrentCell = robotStartCell;
-        robot.SetObjectToFollow(pathFinder.ReturnPath(robotStartCell.X(),robotStartCell.Y(),robotEndCell.X(),robotEndCell.Y(),int.MaxValue,' '));
-        roboard.AddObjects(robot.GetobjectsToFollow());
+        robot.SetObjectToFollow(pathFinder.ReturnPath(robotStartCell,robotEndCell,int.MaxValue,' '));
+        //roboard.AddObjects(robot.GetobjectsToFollow());
 
+        // Starts the user input
+        Console.WriteLine("The goal of this game is to reach G");
+        Console.WriteLine("Read maze from "+Environment.CurrentDirectory+"/game.txt");
+        Console.WriteLine("Read robot maze from "+Environment.CurrentDirectory+"/speedGame.txt");
+        Console.WriteLine("Enter anything to start...");
+        Console.ReadLine();
         // Set the job for the timer
         timer.Elapsed += (sender, e) => OnTimedEvent(sender!, e, roboard,robot,radius);
 
@@ -124,44 +194,37 @@ class Program {
         DateTime startTime = DateTime.Now;
         string message = "not moved";
         bool win = false;
-        // Starts the user input
-        Console.WriteLine("The goal of this game is to reach G");
-        Console.WriteLine("Read maze from "+Environment.CurrentDirectory+"/game.txt");
-        Console.WriteLine("Read robot maze from "+Environment.CurrentDirectory+"/speedGame.txt");
         while (message!="PAUSE"&&message!="CLEAR"){
             // Instructions for inputs
             gameboard.RemoveHints();
             Console.WriteLine("Arrow keys to move, E) Check if you are at goal D) To find path to goal");
             System.ConsoleKey input = Console.ReadKey().Key;  
             if (input == ConsoleKey.UpArrow&&gameboard.MoveValid(currentCell,0,-1)){
-                Moving(player,0,-1);
+                Moving(0,-1);
             }else if (input == ConsoleKey.DownArrow&&gameboard.MoveValid(currentCell,0,1)){
-                Moving(player,0,1);
+                Moving(0,1);
             }else if (input == ConsoleKey.LeftArrow&&gameboard.MoveValid(currentCell,-1,0)){
-                Moving(player,-1,0);
+                Moving(-1,0);
             }else if (input == ConsoleKey.RightArrow&&gameboard.MoveValid(currentCell,1,0)){
-                Moving(player,1,0);
+                Moving(1,0);
             }else if (input == ConsoleKey.Escape){
                 message = "PAUSE";
             }else if (input == ConsoleKey.E){
                 message = GameClear(currentCell);
+                if (message=="CLEAR"){
+                    win = true;
+                }
             }else if (input == ConsoleKey.D){
                 if (pathFinder.Cell2Node(currentCell)==null){
                     message = "Not a junction";
                 }else{
-                    List<object> objs =pathFinder.ReturnPath(currentCell.X(),currentCell.Y(),gameboard.GetEndX(),gameboard.GetEndY(),radius+1,'#');
+                    message = "Giving hints";
+                    List<object> objs =pathFinder.ReturnPath(currentCell,gameboard.GetMazeCell(gameboard.GetEndX(),gameboard.GetEndY()),radius+2,'#');
                     gameboard.AddObjects(objs);
                 } 
             }
             Console.Clear();
             OutputTextFile(gameboard.PrintCameraAngle(currentCell,radius),"game.txt");
-            if (GameClear(gameboard.GetMazeCell(player.X(),player.Y()))=="CLEAR"){
-                message = "CLEAR";
-                win = true;
-            }
-            if (GameClear(roboard.GetMazeCell(robot.X(),robot.Y()))=="CLEAR"){
-                message = "CLEAR";
-            }
             Console.WriteLine(message);
         }
         timer.Stop();
@@ -172,8 +235,7 @@ class Program {
         }else{
             Console.WriteLine("Lost");
         }
-        void Moving(Player control, int a,int b){
-            Player player = (Player)control;
+        void Moving(int a,int b){
             player.Move(currentCell.X()+a,currentCell.Y()+b);
             currentCell = gameboard.GetMazeCell(currentCell.X()+a,currentCell.Y()+b);
             message = "Moved to "+$"x:{currentCell.X()},y:{currentCell.Y()}";
@@ -234,7 +296,7 @@ class Program {
     static void testMob(){
             // Arrange
             var maze = new MazeGrid(10, 10); // Assuming MazeGrid has a constructor that takes width and height
-            var player = new Player(6,5,"TestPlayer",7);
+            var player = new Player(6,5,"TestPlayer");
             maze.InitialiseMaze();
             maze.CreateDFSMaze();
             maze.ClearWall(maze.GetMazeCell(player.x, player.y),maze.GetMazeCell(5, 5));
@@ -257,7 +319,7 @@ class Program {
         {
             // Arrange
             var maze = new MazeGrid(10, 10);
-            var player = new Player(8,8,"TestPlayer",7);
+            var player = new Player(8,8,"TestPlayer");
             maze.InitialiseMaze();
             maze.CreateDFSMaze();
             maze.AddObject(player);
@@ -278,7 +340,7 @@ class Program {
         }
     static void testPlayer(){
         MazeGrid m = testCreateRandomPrimsMaze(3,3);
-        Player player = new Player(0,0,"Player1",7); 
+        Player player = new Player(0,0,"Player1"); 
         Navigator n = new Navigator(new PathFinder(m,new Graph()));
         GameObject g = new GameObject(0,0,"Object",'O',false);
         m.AddObjects([n,g]);
@@ -442,7 +504,7 @@ class Program {
         // Step 4: Perform Dijkstra's Algorithm between two nodes
         Cell endCell = maze.GetMazeCell(maze.GetEndX(),maze.GetEndY());
         
-        List<object> objs = pathFinder.ReturnPath(0,0,endCell.X(),endCell.Y(),int.MaxValue,'#');
+        List<object> objs = pathFinder.ReturnPath(maze.GetMazeCell(0,0),endCell,int.MaxValue,'#');
 
         string print="";
         foreach (object obj in objs){

@@ -33,6 +33,9 @@ namespace MazeGame{
         public List<Edge> GetEdges(){
             return edges;
         }
+        public Edge GetEdge(int i){
+            return edges[i];
+        }
         public void AddEdge(Edge e){
             edges.Add(e);
             BubbleSort();

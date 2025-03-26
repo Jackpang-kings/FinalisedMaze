@@ -18,7 +18,7 @@ namespace MazeGame{
             itemHeld = null!;
             inventory = new List<object>();
         }
-        public Player(int a,int b,string n, int size){
+        public Player(int a,int b,string n){
             x = a;
             y = b;
             name = n;

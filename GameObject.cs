@@ -111,7 +111,7 @@ namespace MazeGame{
                     y = holder.y;
                     objectToFollow.RemoveAt(0);
                 }catch{
-                    objectToFollow = pathFinder.ReturnPath(x,y,currentCell.X(),currentCell.Y(),range,'#');
+                    objectToFollow = pathFinder.ReturnPath(pathFinder._maze.GetMazeCell(x,y),currentCell,range,'#');
                 }           
             }else{
                 Cell nextCell = pathFinder._maze.NeighbourCell(pathFinder._maze.GetMazeCell(x,y).connectedCells,false);

@@ -90,10 +90,29 @@ namespace MazeGame{
             return (path,distance);
         }
         
-        public List<Node> DepthFirstTraversal(Node startNode, Node endNode){
-            List<Node> solution = new List<Node>();
-            
+        public List<Node> DepthFirstTraversal(Node prevNode, Node currNode,List<Node> solution){
+            currNode.Visited(true);
+            solution.Add(currNode);
+            Node nextNode;
+            do{
+                nextNode = GetNotVisitedNode(currNode);
+                if (nextNode!=null) {
+                    DepthFirstTraversal(currNode,nextNode,solution);
+                }
+            }while(nextNode!=null);
             return solution;
+        }
+        public Node GetNotVisitedNode(Node currNode){
+            List<Edge> edges = new List<Edge>();
+            Random rnd = new Random();
+            foreach(Edge e in edges){
+                if (e!=null){
+                    if (!e.GetNode().IsVisited()){
+                        edges.Add(e);
+                    }
+                }
+            }
+            return edges[(rnd.Next(0,edges.Count-1))].GetNode();
         }
 
         public (List<Node>,int[]) DijkstraAlgorithm(Node startNode, Node endNode) {

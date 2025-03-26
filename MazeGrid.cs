@@ -14,8 +14,8 @@ namespace MazeGame{
         height = h;
         _mazeGrid = new Cell[width,height];
         gameObjects = new List<object>();
-        endX = PickRandomNum(w/3*2,w-1);
-        endY = PickRandomNum(h/3*2,h-1);
+        endX = PickRandomNum(w/3*2-1,w);
+        endY = PickRandomNum(h/3*2-1,h);
     }
     public MazeGrid(int w,int h,Cell[,] cells,int a,int b){
         width = w;
