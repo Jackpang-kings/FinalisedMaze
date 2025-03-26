@@ -237,11 +237,6 @@ Prevents players from passing through walls. Boundary checks enforce movement li
 ### Cons:
 - Pixelated graphics
 
-# Unity 2D
-Future consideration for:
-- Enhanced user experience
-- Simplified collision handling
-
 # Further criteria
 
 ### Saving system
@@ -275,65 +270,57 @@ Stores game progress by saving object states to files.
 10. Options
     - Regenerate, pause, resume
 
-# User Requirements
-| **Task ID** | **Category**               | **Task Description**                                                                                      | **Further Explanation**                                                                          |
-| ----------- | -------------------------- | --------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
-| 0           | User Interface             | Instruction for player controls<br>and other possible player input                                        |                                                                                                  |
-| 1           | Speed Game                 | Allowed to choose different difficulty                                                                    | Alters the maze size, player view distance, robot solving speed                                  |
-| 1.1         | Speed Game                 | Beginner                                                                                                  | Player View: 4<br>Tick speed for robot: 2s                                                       |
-| 1.2         | Speed Game                 | Easy                                                                                                      | Player View: 3<br>Tick speed for robot: 1s                                                       |
-| 1.3         | Speed Game                 | Medium                                                                                                    | Player View: 2<br>Tick speed for robot: 0.5s                                                     |
-| 1.4         | Speed Game                 | Hard                                                                                                      | Player View: 1<br>Tick speed for robot: 0.25s                                                    |
-| 2           | Speed Game                 | Interface                                                                                                 | Display player's current progress, step count, robot progress and step count                     |
-| 2.1         | Interface                  | Player progress                                                                                           | Calculate how far the player still has to go using shortest path algorithm                       |
-| 2.2         | Interface                  | Player Step Count                                                                                         | Increases by one everytime the player moves                                                      |
-| 2.3         | Interface                  | Robot progress                                                                                            | Calculate how far the robot still has to go using shortest path algorithm                        |
-| 2.4         | Interface                  | Robot Step Count                                                                                          | Increases by one everytime the robot moves                                                       |
-| 3           | Speed Game                 | Game Mechanics                                                                                            |                                                                                                  |
-| 3.1         | Game Mechanics             | Implement a "Game Clear" condition when the player reaches the goal.                                      | The game should display a victory message and end when the player reaches the goal.              |
-| 3.2         | Game Mechanics             | Implement a "Game Over" condition when the robot reaches the goal before the player                       | The game should display a defeat message and end.                                                |
-| 4           | Speed Game                 | Maze Generation                                                                                           |                                                                                                  |
-| 4.1         | Maze Generation            | The maze would be a random starting point and goal point                                                  | The starting point and ending point would be in between least 1/3 of the maximum number of cells |
-| 4.2         | Maze Generation            | Starting point would be the same point as the player starts                                               | The maze has a desinated starting point                                                          |
-| 4.3         | Maze Generation            | The maze has a desinated goal point.                                                                      | A label "G" would be shown in the goal point                                                     |
-| 4.4         | Maze Generation            | The maze must be solvable in every single position in the maze.                                           | There must be a path from one point to any other point.                                          |
-| 4.5         | Maze Generation            | Default difficulty (type and size) of the maze                                                            | Different difficulties creates different maze type and size                                      |
-| 4.6         | Maze Generation Difficulty | Beginner                                                                                                  | 12x12 Depth-first maze                                                                           |
-| 4.7         | Maze Generation Difficulty | Easy                                                                                                      | 12x12 Prims maze                                                                                 |
-| 4.8         | Maze Generation Difficulty | Medium                                                                                                    | 30x30 Depth-first maze                                                                           |
-| 4.9         | Maze Generation Difficulty | Hard                                                                                                      | 30x30 Prims maze                                                                                 |
-| 5.1         | Maze Printing              | The maze could be seen in a multiple of boxes                                                             |                                                                                                  |
-| 5.2         | Maze Printing              | The maze only shows cells which is within the size of the maze                                            |                                                                                                  |
-| 5.3         | Maze Printing              | The maze print all of the cells within players view                                                       | The maze is print according to where the player is                                               |
-| 5.4         | Maze Printing              | The maze prints player                                                                                    | Label "8"                                                                                        |
-| 5.4         | Maze Printing              | The maze prints robot                                                                                     | Label "R"                                                                                        |
-| 6           | Speed Game                 | Player Initialisation                                                                                     |                                                                                                  |
-| 6.1         | Player Initialisation      | Player is located at top left corner in the maze                                                          | Player is showned at the top corner                                                              |
-| 7           | Speed Game                 | Player Controls                                                                                           |                                                                                                  |
-| 7.1         | Player Controls            | Able to follow the rules of moving in a maze                                                              | Cannot move between cells if there is a wall in between and out of the range of the maze         |
-| 7.2         | Player Controls            | Able to move up from one cell to another                                                                  | Pressing up arrow                                                                                |
-| 7.3         | Player Controls            | Able to move down from one cell to another                                                                | Pressing down arrow                                                                              |
-| 7.4         | Player Controls            | Able to move left from one cell to another                                                                | Pressing left arrow                                                                              |
-| 7.5         | Player Controls            | Able to move right from one cell to another                                                               | Pressing right arrow                                                                             |
-| 7.6         | Player Controls            | Allow to use the compass for hint                                                                         | The maze would show a specific count of trays(#) for hint to go towards the goal                 |
-| 7.7         | Navigating System          | Implement a system to calculate and display the shortest route between two points in the maze.            | The system should use Dijkstra's alogrithm to find the shortest path.                            |
-| 7.8         | Navigating System          | Allow players to access the navigating system through specific items (e.g. Compass).                      | Items like the Compass should provide hints or reveal parts of the shortest path to the goal.    |
-| 8           | Speed Game                 | Robot Initialisation                                                                                      |                                                                                                  |
-| 8.1         | Robot Initialisation       | Clock speed                                                                                               | Perform a walk each time interval                                                                |
-| 8.2         | Robot Initialisation       | Where it starts                                                                                           | x,y -> 0,0                                                                                       |
-| 9           | Speed Game                 | Robot behaviour                                                                                           |                                                                                                  |
-| 9.1         | Robot behaviour            | Movement                                                                                                  | When there is only one cell to go, move to that cell                                             |
-| 9.2         | Robot behaviour            | Movement Speed                                                                                            | Move per interval                                                                                |
-| 9.3         | Robot behaviour            | Junction                                                                                                  | When there is two or more cell to go, compute which route goes towards the cell                  |
-| 9.4         | Robot behaviour            | Traversals                                                                                                |                                                                                                  |
-| 9.5         | Traversals                 | Performs a depth first traversal walk                                                                     | The order of the walk should be continous                                                        |
-| 9.6         | Traversals                 | Performs a breadth first traversal walk                                                                   | The order of the walk should be continous                                                        |
-| 10          | Post Game                  | Show the best route for the maze<br>Show the path the user has taken<br>Show the path the robot has taken |                                                                                                  |
-| 10.1        | Best route                 | Use dijkstra algorithm to find the shortest path to the goal                                              |                                                                                                  |
-| 10.2        | User taken Path            | Mark every cell has visited if it is traversed                                                            |                                                                                                  |
-| 10.3        | Robot path                 | Mark every cell has visited if it is traversed                                                            |                                                                                                  |
+# User Interface Requirement
 
+| **Requirement ID** | **Category**   | **Requirement Description**                                                                                                         |
+| ------------------ | -------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| REQ1               | User Interface | Player should be able read the maze from the directory                                                                              |
+| REQ2               | User Interface | A message should be displayed describing what type of maze the player is player on                                                  |
+| REQ3               | User Interface | User should see a message when the game is ready to start and prompts the user to enter anything to start the game                  |
+| REQ4               | User Interface | Player should be able to read a message what keys could be pressed and what it does                                                 |
+| REQ5               | User Interface | Player should be able to press the "Up arrow" key to move up from the current position following the requirement (4.6.1)            |
+| REQ6               | User Interface | Player should be able to press the "Down arrow" key to move down from the current position following the requirement (4.6.2)        |
+| REQ7               | User Interface | Player should be able to press the "Left arrow" key to move to the left of the current position following the requirement (4.6.3)   |
+| REQ8               | User Interface | Player should be able to press the "Right arrow" key to move to the right of the current position following the requirement (4.6.4) |
+| REQ9               | User Interface | Player should be able to press "d" key to look for hint following the rules in requirement (2.1)                                    |
+| REQ10              | User Interface | A message should be displayed to tell the player if the path finding is successful or not                                           |
+| REQ11              | User Interface | The one cell in the path should be labelled as "#" in the maze like<br>+---+<br>\| # \|<br>+---+<br>                                |
+| REQ12              | User Interface | Player should able to press "E" key to check if it is                                                                               |
+| REQ13              | User Interface | Player should able to press "Q" key to exit the game.                                                                               |
+| REQ14              | User Interface | A message should be display to indicate the player is exiting the game                                                              |
+| REQ15              | User Interface | Player should be able to see its current position in the maze                                                                       |
+| REQ16              | User Interface | Player should be able to see a maximum size 7x7 rectangle as a maze                                                                 |
+| REQ17              | User Interface | Player should be able to see each cell as <br>+---+<br>\|   \|<br>+---+                                                             |
+| REQ18              | User Interface | Player should be able to see the entire maze at the start of the game in the game file                                              |
+| REQ19              | User Interface | Including where the player is starting                                                                                              |
+| REQ20              | User Interface | Including where the goal is, indicated by "G"                                                                                       |
+# Creating Maze Requirement
 
+| **Requirement ID** | **Category**    | **Requirement Description**                                                                                                                   |
+| ------------------ | --------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| REQ21              | Maze Generation | The goal point should be at a position far from the starting position. A label "G" would be shown in the goal point                           |
+| REQ22              | Maze Generation | The starting point of the player should always be the top left corner of the maze                                                             |
+| REQ23              | Maze Generation | The maze has a desinated goal point.                                                                                                          |
+| REQ24              | Maze Generation | The maze must be solvable in every single position in the maze. There must be a path from one point to any other point.                       |
+| REQ25              | Maze Generation | The structure of the maze should be unique                                                                                                    |
+| REQ26              | Maze Rule       | The movement of the player should be limited by the walls of the maze                                                                         |
+| REQ27              | Maze Rule       | When the player moves up and there is a wall in the north direction. A message should be displayed to tell the player that it is not moved.   |
+| REQ28              | Maze Rule       | When the player moves down and there is a wall in the south direction. A message should be displayed to tell the player that it is not moved. |
+| REQ29              | Maze Rule       | When the player moves left and there is a wall in the west direction. A message should be displayed to tell the player that it is not moved.  |
+| REQ30              | Maze Rule       | When the player moves right and there is a wall in the east direction. A message should be displayed to tell the player that it is not moved. |
+
+# Path Finding requirement
+
+| **Requirement ID** | **Category**      | **Requirement Description**                                                  |
+| ------------------ | ----------------- | ---------------------------------------------------------------------------- |
+| REQ31              | Path finding rule | Only returns a path when the current position is a node.                     |
+| REQ32              | Path finding rule | The cell is a node when is a turning point, a L could be drawned in the cell |
+| REQ33              | Path finding rule | The cell is a node when is a junction (which has only one wall)              |
+| REQ34              | Path finding rule | The cell is a node whent there is three wall in the cell                     |
+| REQ35              | Path finding rule | The cell is a node when it is a starting point (Top left corner of the maze) |
+| REQ36              | Path finding rule | The cell is a node when it is a goal point                                   |
+| REQ37              | Path finding      | The path should lead to "G" the goal point                                   |
+| REQ38              | Path finding      | The path should only give 5 hints in the maze                                |
 
 
 
