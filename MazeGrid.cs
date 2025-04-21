@@ -223,9 +223,11 @@ namespace MazeGame{
         SetConnectedCells();
     }
     public void RemoveHints(){
-        object o = gameObjects[0];
-        object o2 = gameObjects[1];
-        gameObjects = new List<object>([o,o2]);
+        if (gameObjects.Count>2){
+            object o1 = gameObjects[0];
+            object o2 = gameObjects[1];
+            gameObjects = new List<object>([o1,o2]);
+        }
     }
     public string MazePrint() {
         string mazeprintmessage ="   ";

@@ -15,7 +15,7 @@ class Program {
             //testScript();
             ch = Console.ReadLine()!.ToUpper();
             if (ch=="1"){
-                testScript();
+                CustomGame();
             }else if (ch=="2"){
                 TestGame();
             }else if (ch=="3"){
@@ -111,7 +111,7 @@ class Program {
                     if (pathFinder.Cell2Node(currentCell)==null){
                         objs = pathFinder.ReturnPathToNearestNode(currentCell);
                     }else{
-                        objs =pathFinder.ReturnPath(currentCell,endCell,radius+5,"B",'#');
+                        objs = pathFinder.ReturnPath(currentCell,endCell,radius+5,"B",'#');
                     } 
                     message = "Hints given";
                     gameboard.AddObjects(objs);
@@ -161,7 +161,7 @@ class Program {
 
         // Create mob object
         PathFinder pathFinder = new PathFinder(roboard,new Graph()); // Assuming PathFinder has a constructor that takes a MazeGrid
-        Mob robot = new Mob(startx,starty, "Robot", 1, 3, 10, pathFinder); // Mob starts at (0,0)
+        Mob robot = new Mob(startx,starty, "Robot"); // Mob starts at (0,0)
 
 
         // Add objects into both maze
@@ -311,7 +311,7 @@ class Program {
             writer.Close();
         }
     }
-    static void testScript(){
+    static void CustomGame(){
         bool valid=false;
         string debugMessage = "";
         int[] size = new int[2];
@@ -375,8 +375,9 @@ class Program {
         Console.WriteLine("Distance travelled "+solution.Item2);
         Console.WriteLine("Time took Dijkstra's traversal "+DifferenceBetweenTwoTime(startTime,endTime).Milliseconds+" in Milliseconds\n");
         Console.WriteLine("Printing path...");
-        OutputTextFile(maze.MazePrintWithGmObj(maze),"game.txt");
+        OutputTextFile(maze.MazePrintWithGmObj(maze),"dijkstraSolution.txt");
         Console.WriteLine("Printed");
+        Console.WriteLine("Read maze from "+Environment.CurrentDirectory+"/dijkstraSolution.txt"+"\n");
         Console.WriteLine("Enter to test Breadth-first search Algorithm...");
         Console.ReadLine();
 
@@ -390,63 +391,15 @@ class Program {
         Console.WriteLine("Distance travelled "+solution.Item2);
         Console.WriteLine("Time took Breadth-first Traversal "+DifferenceBetweenTwoTime(startTime,endTime).Milliseconds+" in Milliseconds\n");
         Console.WriteLine("Printing path...");
-        OutputTextFile(maze.MazePrintWithGmObj(maze),"speedGame.txt");
+        OutputTextFile(maze.MazePrintWithGmObj(maze),"breadthFirstSolution.txt");
         Console.WriteLine("Printed");
-        Console.WriteLine("Read maze from "+Environment.CurrentDirectory+"/speedGame.txt"+"\n");
+        Console.WriteLine("Read maze from "+Environment.CurrentDirectory+"/breadthFirstSolution.txt"+"\n");
     }
-    static void testMob(){
-            // Arrange
-            var maze = new MazeGrid(10, 10); // Assuming MazeGrid has a constructor that takes width and height
-            var player = new Player(6,5,"TestPlayer");
-            maze.InitialiseMaze();
-            maze.CreateDFSMaze();
-            maze.ClearWall(maze.GetMazeCell(player.X(), player.Y()),maze.GetMazeCell(5, 5));
-            maze.AddObject(player);
-            var pathFinder = new PathFinder(maze,new Graph()); // Assuming PathFinder has a constructor that takes a MazeGrid
-            var mob = new Mob(5, 5, "TestMob", 1, 3, 10, pathFinder); // Mob starts at (5,5)
-            maze.AddObject(mob);
-            
-            Console.WriteLine(maze.MazePrintWithGmObj(maze));
-            var currentCell = maze.GetMazeCell(player.X(),player.Y()); // Get the current cell of the player
-            // Act
-            mob.Tick(currentCell);
-            mob.Tick(currentCell);
-            Console.WriteLine(maze.MazePrintWithGmObj(maze));
-            Console.WriteLine($"Following: {mob.GetFollowing().ToString()}");
-            Console.WriteLine($"{mob.X()},{mob.Y()}");
-            // Additional checks can be added here to verify the path taken by the mob
-        }
-    static void TestMobPatrolsWhenPlayerIsOutOfRange()
-        {
-            // Arrange
-            var maze = new MazeGrid(10, 10);
-            var player = new Player(8,8,"TestPlayer");
-            maze.InitialiseMaze();
-            maze.CreateDFSMaze();
-            maze.AddObject(player);
-            var pathFinder = new PathFinder(maze,new Graph()); // Assuming PathFinder has a constructor that takes a MazeGrid
-            var mob = new Mob(5, 5, "TestMob", 1, 3, 10, pathFinder); // Mob starts at (5,5)
-            maze.AddObject(mob);
-            
-            Console.WriteLine(maze.MazePrintWithGmObj(maze));
-            var currentCell = maze.GetMazeCell(player.X(),player.Y()); // Get the current cell of the player
-            // Act
-            mob.Tick(currentCell);
-            mob.Tick(currentCell);
-            Console.WriteLine(maze.MazePrintWithGmObj(maze));
-            Console.WriteLine($"Following: {mob.GetFollowing().ToString()}");
-            Console.WriteLine($"{mob.X()},{mob.Y()}");
-            // Assert
-            // Additional checks can be added here to verify the new position of the mob after patrolling
-        }
     static void testPlayer(){
         MazeGrid m = testCreateRandomPrimsMaze(3,3);
         Player player = new Player(0,0,"Player1"); 
-        Navigator n = new Navigator(new PathFinder(m,new Graph()));
         GameObject g = new GameObject(0,0,"Object",'O');
-        m.AddObjects([n,g]);
-        player.AddItem(n);
-        Console.WriteLine(player.DisplayInventory());
+        m.AddObjects([g]);
         //player.GetInventory
     }
     static void testMazeGrid(){
@@ -578,21 +531,6 @@ class Program {
             mazeprintmessage += $"{Convert.ToString(i),3}  ";
         }
         Console.WriteLine(mazeprintmessage);
-    }
-    static void testGameObject(){
-        // Create some GameObject instances
-        GameObject wall = new GameObject(0, 0, "Wall",'W');
-        GameObject box = new GameObject(1, 2, "Box",'B');
-        GameObject key = new GameObject(2, 3, "Key",'K');
-
-        // Test the ToString method
-        Console.WriteLine(wall.ToString());
-        Console.WriteLine(box.ToString());
-        Console.WriteLine(key.ToString());
-
-        // Test getters and setters
-        Console.WriteLine("\nTesting properties and methods:");
-        Console.WriteLine($"Box Name: {box.GetName()}");
     }
     static void testGameObjectAndCell(){
         // Create GameObject instances

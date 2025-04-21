@@ -43,7 +43,7 @@ namespace MazeGame{
                 }
             }
         }        
-        public (int,Cell) DFSCalculateDistance(Cell c){
+        (int,Cell) DFSCalculateDistance(Cell c){
             List<Cell> cellsToTraverse = new List<Cell>([c]);
             int d= 1;
             bool found = false;
@@ -90,7 +90,7 @@ namespace MazeGame{
         }
         List<object> PathToNearestNode(Cell currentCell,Cell newCell){
             List<object> objs = new List<object>([new GameObject(newCell.X(),newCell.Y(),"Mark2Node",'#')]);
-            List<object> fill = DFSBuildBridgeBetweenNodes(currentCell,cellNodeMap[newCell],'#');
+            List<object> fill = BuildBridgeBetweenNodes(currentCell,cellNodeMap[newCell],'#');
             if (fill!=null){
                 foreach(object o in fill){
                     objs.Add(o);
@@ -99,7 +99,7 @@ namespace MazeGame{
             _maze.SetAllCellNotVisited();
             return objs;
         }
-        List<object> DFSBuildBridgeBetweenNodes(Cell c, Node endNode,char label){
+        List<object> BuildBridgeBetweenNodes(Cell c, Node endNode,char label){
             Node startNode;
             if (cellNodeMap.ContainsKey(c)){
                 startNode = cellNodeMap[c];
@@ -153,14 +153,14 @@ namespace MazeGame{
             for (int i = 0; i < nodes.Count-1;i++){
                 list.Add(new GameObject(startX,startY,"Mark",label));
                 _maze.GetMazeCell(startX,startY).Visited(true);
-                foreach(object obj in DFSBuildBridgeBetweenNodes(_maze.GetMazeCell(startX,startY),nodes[i+1],label)){
+                foreach(object obj in BuildBridgeBetweenNodes(_maze.GetMazeCell(startX,startY),nodes[i+1],label)){
                     list.Add(obj);
                 }
                 startX = nodes[i+1].X();
                 startY = nodes[i+1].Y();
-                _maze.SetAllCellNotVisited();
             }
             list.Add(new GameObject(endCell.X(),endCell.Y(),"Last Mark",label));
+            _maze.SetAllCellNotVisited();
             return list;
         }
         public List<object> ReturnPath(Cell start, Cell end,int d,string method,char label){
