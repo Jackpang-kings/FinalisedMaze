@@ -64,7 +64,7 @@ namespace MazeGame{
             }
             return (d,c);
         }
-        (Cell,Cell,int) FindTheNearestNode(Cell currentCell){
+        public (Cell,Cell,int) FindTheNearestNode(Cell currentCell){
             List<(int,Cell,Cell)> list = new List<(int, Cell,Cell)>();
             currentCell.Visited(true);
             for(int k = 0;k<currentCell.connectedCells.Count;k++){
@@ -73,9 +73,10 @@ namespace MazeGame{
             }
             _maze.SetAllCellNotVisited();
             Cell newCell;
+            Node endNode = cellNodeMap[_maze.GetMazeCell(_maze.GetEndX(),_maze.GetEndY())];
             int d;
             int index;
-            if (list[0].Item1>list[1].Item1){
+            if (graph.DijkstraAlgorithm(cellNodeMap[list[0].Item2],endNode).Item2>graph.DijkstraAlgorithm(cellNodeMap[list[1].Item2],endNode).Item2){
                 index = 1;
                 list[0].Item3.Visited(true);
             }else{
@@ -97,10 +98,6 @@ namespace MazeGame{
             }
             _maze.SetAllCellNotVisited();
             return objs;
-        }
-        public List<object> ReturnPathToNearestNode(Cell currentCell){
-            var cells = FindTheNearestNode(currentCell);
-            return PathToNearestNode(cells.Item1,cells.Item2);
         }
         List<object> DFSBuildBridgeBetweenNodes(Cell c, Node endNode,char label){
             Node startNode;
@@ -131,6 +128,10 @@ namespace MazeGame{
                 }
             }
             return objs;
+        }
+        public List<object> ReturnPathToNearestNode(Cell currentCell){
+            var cells = FindTheNearestNode(currentCell);
+            return PathToNearestNode(cells.Item1,cells.Item2);
         }
         void SetNodeRelationship(Node newNode, Node prevNode,Cell c,int d){
             Edge e = new Edge(prevNode,d,c);
@@ -163,6 +164,9 @@ namespace MazeGame{
             return list;
         }
         public List<object> ReturnPath(Cell start, Cell end,int d,string method,char label){
+            if (!cellNodeMap.ContainsKey(start)){
+                start = FindTheNearestNode(start).Item2;
+            }
             Node startNode = Cell2Node(start);
             Node endNode = Cell2Node(end);
             List<object> list = new List<object>();

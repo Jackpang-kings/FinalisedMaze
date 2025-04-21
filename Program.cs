@@ -203,6 +203,7 @@ class Program {
             gameboard.RemoveHints();
             Console.WriteLine("Arrow keys to move, E) Check if you are at goal D) To find path to goal Q)Quit");
             System.ConsoleKey input = Console.ReadKey().Key;  
+            message = "not moved";
             if (input == ConsoleKey.UpArrow&&gameboard.MoveValid(currentCell,0,-1)){
                 Moving(0,-1);
             }else if (input == ConsoleKey.DownArrow&&gameboard.MoveValid(currentCell,0,1)){
@@ -251,6 +252,11 @@ class Program {
                 Console.WriteLine("You Won");
             }else{
                 Console.WriteLine("Robot Won");
+                Console.WriteLine("Printing your path to goal");
+                gameboard.AddObjects(pathFinder.ReturnPathToNearestNode(currentCell));
+                gameboard.AddObjects(pathFinder.ReturnPath(currentCell,endCell,int.MaxValue,"B",'#'));
+                OutputTextFile(gameboard.MazePrintWithGmObj(gameboard),"game.txt");
+                Console.WriteLine("Read maze from "+Environment.CurrentDirectory+"/game.txt"+"\n");
             }
         }else{
             int playerdistance = pathFinder.FindDistanceUntilNode(currentCell);
@@ -259,6 +265,11 @@ class Program {
             Console.WriteLine("Robot were "+robotdistance+" away from the goal");
             if(playerdistance>robotdistance){
                 Console.WriteLine("Robot Won");
+                Console.WriteLine("Printing your path to goal");
+                gameboard.AddObjects(pathFinder.ReturnPathToNearestNode(currentCell));
+                gameboard.AddObjects(pathFinder.ReturnPath(currentCell,endCell,int.MaxValue,"B",'#'));
+                OutputTextFile(gameboard.MazePrintWithGmObj(gameboard),"game.txt");
+                Console.WriteLine("Read maze from "+Environment.CurrentDirectory+"/game.txt"+"\n");
             }else if (playerdistance<robotdistance){
                 Console.WriteLine("You Won");
             }else{

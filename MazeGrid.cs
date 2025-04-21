@@ -415,8 +415,10 @@ namespace MazeGame{
         gameObjects.Add(obj);
     }
     public void AddObjects(List<object> list){
-        foreach (object obj in list){
+        if (list!=null){
+            foreach (object obj in list){
             AddObject(obj);
+            }
         }
     }
 }
