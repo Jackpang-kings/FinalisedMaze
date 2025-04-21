@@ -45,15 +45,13 @@ namespace MazeGame{
         public List<Cell> GetConnectedCells(){
             return connectedCells;
         }
-        public bool IsNode(){
+        public bool IsNewNode(){
             if((x==0&&y==0)|(goal)){
                 return true;
-            }else if (FrontWall&&BackWall&&!RightWall&&!LeftWall){
-                return false;
-            }else if (!FrontWall&&!BackWall&&RightWall&&LeftWall){
-                return false;
-            }else{
+            }else if (connectedCells.Count==1|connectedCells.Count>2){
                 return true;
+            }else{
+                return false;
             }
         }
         

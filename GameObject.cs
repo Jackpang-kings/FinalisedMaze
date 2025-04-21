@@ -5,8 +5,8 @@ using System.Security.Cryptography;
 
 namespace MazeGame{
     public class GameObject{
-        public int x{ get; set; }
-        public int y{ get; set; }
+        protected int x;
+        protected int y;
         public string name;
         public char label;
         public GameObject(){
@@ -16,7 +16,7 @@ namespace MazeGame{
             label=' ';
             
         }
-        public GameObject(int a,int b,string n, char t, bool m){
+        public GameObject(int a,int b,string n, char t){
             x = a;
             y = b;
             name = n;
@@ -107,11 +107,11 @@ namespace MazeGame{
             if (objectToFollow!=null&&following==true){
                 try{
                     GameObject holder = (GameObject)objectToFollow[0];
-                    x = holder.x;
-                    y = holder.y;
+                    x = holder.X();
+                    y = holder.Y();
                     objectToFollow.RemoveAt(0);
                 }catch{
-                    objectToFollow = pathFinder.ReturnPath(pathFinder._maze.GetMazeCell(x,y),currentCell,range,'#');
+                    objectToFollow = pathFinder.ReturnPath(pathFinder._maze.GetMazeCell(x,y),currentCell,range,"D",'#');
                 }           
             }else{
                 Cell nextCell = pathFinder._maze.NeighbourCell(pathFinder._maze.GetMazeCell(x,y).connectedCells,false);
@@ -126,72 +126,10 @@ namespace MazeGame{
                 following = false;
             }else{
                 var solution = pathFinder.graph.DijkstraAlgorithm(startNode!,endNode!);
-                if (solution.Item2[endNode!.getNodeID()]<=range){
+                if (solution.Item2<=range){
                     following = true;
                 }
             }
-        }
-    }
-    class Tool:GameObject {
-        protected bool breakWall;
-        protected bool openWall;
-        public Tool(int a, int b, string n,bool br, bool op){
-            x = a;
-            y = b;
-            name = n;
-            label = 'T';
-            breakWall = br;
-            openWall = op;
-        }
-        public void BreakWall(MazeGrid maze){
-
-        }
-        public void OpenWall(MazeGrid maze,string direction){
-            Cell currentCell = maze.GetMazeCell(x,y);
-            if(currentCell != null){
-                int x = currentCell.X();
-                int y = currentCell.Y();
-                if (direction=="UP"){
-                    if (!currentCell.FrontWall&&y-1>=0){
-                        
-                    }
-                }else if (direction=="DOWN"){
-                    if (y+1<maze.Height()&&!currentCell.BackWall){
-                        
-                    }
-                }else if (direction=="LEFT"){
-                    if (!currentCell.LeftWall&&x-1>=0){
-                        
-                    }
-                }else if (direction=="RIGHT"){
-                    if (!currentCell.RightWall&&x+1<maze.Width()){
-                        
-                    }
-                }
-            }
-        }
-    }
-    class Weapon:GameObject {
-        protected int damage;
-        public Weapon(int a, int b, string n, int d){
-            x = a;
-            y = b;
-            name = n;
-            label = 'W';
-            damage = d;
-        }
-    }
-    class Food:GameObject {
-        protected int heal;
-        public Food(int a, int b, string n, int h){
-            x = a;
-            y = b;
-            name = n;
-            label = 'F';
-            heal = h;
-        }
-        public int GetHeal(){
-            return heal;
         }
     }
 }

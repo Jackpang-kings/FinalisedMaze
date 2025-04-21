@@ -38,7 +38,6 @@ namespace MazeGame{
         }
         public void AddEdge(Edge e){
             edges.Add(e);
-            BubbleSort();
         }
         public override string ToString()
         {
@@ -46,24 +45,6 @@ namespace MazeGame{
             node2str += $"NodeID:{nodeid}\n";
             node2str += $"X:{X()}Y:{Y()}\n";
             return node2str;
-        }
-        public void BubbleSort(){
-            bool swapped = true;
-            Edge temp;
-            int i = 0;
-            int l = edges.Count-1;
-            while (swapped == true){
-                swapped = false;
-                for (int j = 0; j < l-i;j++){
-                    if (edges[j].GetDistance()>edges[j+1].GetDistance()){
-                        temp = edges[j+1];
-                        edges[j+1] = edges[j];
-                        edges[j] = temp;
-                        swapped = true;
-                    }
-                }
-                i++;
-            }
         }
     }
 

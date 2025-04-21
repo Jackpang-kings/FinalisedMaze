@@ -14,7 +14,7 @@ namespace MazeGame{
         public void SetNewNodeList(){
             nodes = new List<Node>();
         }
-        public void SetAllNodeNotVisited(){
+        void SetAllNodeNotVisited(){
             foreach (var node in nodes){
                 node.Visited(false);
             }
@@ -32,17 +32,9 @@ namespace MazeGame{
             nodes.Add(n); 
         }
         
-        public int GetSize() {
-            return nodes.Count;
-        }
-        
-        public List<Edge> RetrieveNeighbours(Node n){
-            return nodes[n.getNodeID()].GetEdges();
-        }
-        
-        public (List<Node>,int[]) BreadthFirstTraversal(Node startNode, Node endNode){
+        public (List<Node>,int,int) BreadthFirstTraversal(Node startNode, Node endNode){
             // A list of distance from the startNode to every other node
-            int [] distance = new int[GetSize()];
+            int [] distance = new int[nodes.Count];
 
             // Set all nodes as not visited
             SetAllNodeNotVisited();
@@ -87,35 +79,16 @@ namespace MazeGame{
             if (current == startNode) {
                 path.Insert(0, startNode); // Include the start node
             }
-            return (path,distance);
-        }
-        
-        public List<Node> DepthFirstTraversal(Node prevNode, Node currNode,List<Node> solution){
-            currNode.Visited(true);
-            solution.Add(currNode);
-            Node nextNode;
-            do{
-                nextNode = GetNotVisitedNode(currNode);
-                if (nextNode!=null) {
-                    DepthFirstTraversal(currNode,nextNode,solution);
-                }
-            }while(nextNode!=null);
-            return solution;
-        }
-        public Node GetNotVisitedNode(Node currNode){
-            List<Edge> edges = new List<Edge>();
-            Random rnd = new Random();
-            foreach(Edge e in edges){
-                if (e!=null){
-                    if (!e.GetNode().IsVisited()){
-                        edges.Add(e);
-                    }
+            int count= 0;
+            foreach(int i in distance){
+                if (i!=int.MaxValue){
+                    count++;
                 }
             }
-            return edges[(rnd.Next(0,edges.Count-1))].GetNode();
+            return (path,distance[endNode.getNodeID()],count);
         }
 
-        public (List<Node>,int[]) DijkstraAlgorithm(Node startNode, Node endNode) {
+        public (List<Node>,int,int) DijkstraAlgorithm(Node startNode, Node endNode) {
             // Set all nodes as not visited
             SetAllNodeNotVisited();
 
@@ -123,7 +96,7 @@ namespace MazeGame{
             List<Node> solution  = new List<Node>();
 
             // A list of distance from the startNode to every other node
-            int [] distance = new int[GetSize()];
+            int [] distance = new int[nodes.Count];
             int distTemp;
             int distFromStartN;
             // Set all integer into largest value possible
@@ -189,19 +162,21 @@ namespace MazeGame{
             if (current == startNode) {
                 shortestPath.Insert(0, startNode); // Include the start node
             }
-
-            return (shortestPath,distance);
+            int count = 0;
+            foreach(int i in distance){
+                if (i!=int.MaxValue){
+                    count++;
+                }
+            }
+            return (shortestPath,distance[endNode.getNodeID()],count);
         }
         
         public int GetDistanceBetweenNodes(Node node1,Node node2){
-            int distance;
-            if (node1.X()==node2.X()){// in the same row
-                //find the distance vertically
-                distance = Math.Abs(node1.Y()-node2.Y());
-            }else if (node1.Y()==node2.Y()){
-                distance = Math.Abs(node1.X()-node2.X());
-            }else{
-                return -1;
+            int distance = -1;
+            foreach (Edge e in node1.GetEdges()){
+                if (e.GetNode()==node2){
+                    distance = e.GetDistance();
+                }
             }
             return distance;
         }

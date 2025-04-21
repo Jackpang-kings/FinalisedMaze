@@ -9,15 +9,22 @@ Table of Contents
 - [PathFinder](#pathfinder)
 ## Class Diagram Overview
 ```mermaid
-	classDiagram
+		classDiagram
 	note for MazeGrid "The main maze"
 		class MazeGrid{
-			+Cell[,] _mazeGrid
-			+int Height
-			+int Width
-			+void SetMazeCell()
+			-Cell[,] _mazeGrid
+			-int Height
+			-int Width
+            -int endX
+            -int endY
+            +Cell[,] GetGrid
+            +int GetEndX()
+            +int GetEndY()
 			+Cell GetMazeCell()
+            +Cell[] GetMazeRow()
 			+void InitialiseMaze()
+            +int Width()
+            +int Height()
 			+void DFSGenerateMaze()
 			+void PrimsMaze()
 			+void ClearWall()
@@ -26,38 +33,33 @@ Table of Contents
 			+int PickRandomNum()
 			+Cell NeighbourNode()
 			+void SetAllCellNotVisited()
-			+string PrintConnectedNeighbours()
 			+void SetConnectedCells()
 			+bool MoveValid()
-			+Cell Move()
 			+void CreateDFSMaze()
 			+void CreatePrimsMaze()
 			+string MazePrint()
 			+string MazeNoNumPrint()
-			+string PrintCellLeftRightGmObjWall()
-			+string PrintCellFrontWall()
-			+string PrintCellBackWall()
-			+int FindLimit()
+			-string PrintCellLeftRightGmObjWall()
+			-string PrintCellFrontWall()
+			-string PrintCellBackWall()
+			-int FindLimit()
 			+string PrintCameraAngle()
-			+string PrintAddGameObjects()
-			+void AddGameObjects()
-			+int CheckNumOfNodes()
+			-string PrintAddObjects()
+			+void AddObjects()
+            +void AddObject()
 		}
         note for Cell "The individual cells that forms a maze"
 		class Cell{
-			+int x
-			+int y
+			-int x
+			-int y
 			+bool left
 			+bool right
 			+bool front
 			+bool back
 			+bool visited
 			+bool goal
-			+GameObject gameObject
-			+void RmLeftWall()
-			+void RmRightWall()
-			+void RmFrontWall()
-			+void RmBackWall()
+            +List~Cell~ neighbourCells
+            +List~Cell~ connectedCells
 			+bool IsVisited()
 			%%returns bool visited
 			%%visited = v
@@ -65,10 +67,10 @@ Table of Contents
 			%%goalcell = true
 			+bool IsGoal()
 			%%returns bool goal
-			+GameObject GetGameObject()
-			%%returns gameObject
-			+GameObject SetGameObject()
-			%%set gameObject
+            +void AddConnectedCell()
+            +List~Cell~ GetConnectedCells()
+            +bool IsNode()
+
 		}
         class Edge{
 		    +Node neighbour
@@ -80,18 +82,18 @@ Table of Contents
             +int x
             +int y
             -string name
-            -bool interaction
-            -bool movable
             +string GetName()
-            +bool IsInteracting()
-            +void Interacted()
-            +bool IsMovable()
-            +void Movable()
+            +void Move()
 	    }
         class Graph{
-			+List~Node~ nodes
+			-List~Node~ nodes
 			+Node GetNode()
 			+void AddNode()
+            +void SetAllNodeNotVisited
+            +List~Node~ DepthFirstTraversal
+            +List~Node,int[]~ DijkstraAlgorithm
+            -Node GetNotVisitedNode()
+            +int GetDistanceBetweenNodes()
 		}
         class Node{
 			+int nodeid
@@ -105,22 +107,23 @@ Table of Contents
 			+bool IsVisited()
 			+void Visited()
 		}
-        class PathFinder{
+        class PathFinding{
 			+Graph graph
 			+MazeGrid _mazeGrid
 			+Dictionary~Cell,Node~ cellNodeMap
 			+void LinkNodeRelationships()
 			+void CheckNodesRelationship()
 			+void SetGraphRelationship()
+            +List~object~ ReturnPath()
 			+Node Cell2Node()
 		}
         MazeGrid --> "many" Cell : Contains
-        MazeGrid-->PathFinder
-        Graph-->PathFinder
-        Graph --> "many" Node : Contains
-        Node--> "many" Edge : Contains
-        Edge--|>Node
-        GameObject-->Cell
+        MazeGrid o-- PathFinding : Takes cell to create nodes
+        Graph o--  PathFinding : Creates nodes from maze and Links them
+        Graph --> Node : Contains
+        Node --o Edge : Contains
+        Edge--*Node
+        GameObject "many"<--MazeGrid : Contains
 ```
 ----
 ## MazeGrid
