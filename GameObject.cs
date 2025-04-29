@@ -8,7 +8,7 @@ namespace MazeGame{
         protected int x;
         protected int y;
         public string name;
-        public char label;
+        protected char label;
         public GameObject(){
             x=0;
             y=0;

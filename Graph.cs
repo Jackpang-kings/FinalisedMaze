@@ -181,26 +181,5 @@ namespace MazeGame{
             return distance;
         }
         
-        public string PrintNodeList(List<Node> ns){
-            int size = ns.Count;
-            string result = "";
-
-            // Add the header row
-            result += "Node | Adjacent Nodes\n";
-            result += "-----+" + new string('-', 9*5) + "\n";
-
-            // Add each node and its adjacency list
-            for (int i = 0; i < size; i++)
-            {
-                result += $"({ns[i].X()},{ns[i].Y()})| ";
-                foreach (var neighbor in ns[i].GetEdges())
-                {
-                    result += $"({neighbor.GetNode().X()},{neighbor.GetNode().Y()}),{neighbor.GetDistance()}  ";
-                }
-                result += "\n";
-            }
-
-            return result;
-        }
 }
 }
